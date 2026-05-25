@@ -8,6 +8,8 @@ import { mcp } from './router/mcp'
 import { mcpManifest } from './router/mcp-manifest'
 import { flowchart } from './router/flowchart'
 import { agentsDetail } from './router/agents-detail'
+import { apiExplorer } from './router/api-explorer'
+import { landing } from './router/landing'
 import { handleQueue } from './queue/consumer'
 
 // Re-export Durable Object and Workflow classes for Cloudflare runtime
@@ -16,10 +18,8 @@ export { EngagementWorkflow } from './workflows/engagement'
 
 const app = new Hono<{ Bindings: Env }>()
 
-// Root
-app.get('/', (c) => c.json({ status: 'ff-test online', version: '0.1.0' }))
-
 // Mount route groups
+app.route('/', landing)
 app.route('/', health)
 app.route('/', transactions)
 app.route('/', webhooks)
@@ -28,6 +28,7 @@ app.route('/', mcp)
 app.route('/', mcpManifest)
 app.route('/', flowchart)
 app.route('/', agentsDetail)
+app.route('/', apiExplorer)
 
 // Worker export — fetch handler + queue consumer
 export default {

@@ -174,11 +174,12 @@ const FLOWCHART_HTML = `<!DOCTYPE html>
 <nav class="nav">
   <div class="nav-brand">XNUMIA</div>
   <div class="nav-links">
+    <a href="/">Overview</a>
     <a href="/dashboard">Dashboard</a>
     <a href="/flowchart" class="active">Architecture</a>
     <a href="/agents">Agents</a>
-    <a href="/mcp/manifest">API</a>
-    <a href="/health">Health</a>
+    <a href="/api-explorer">API</a>
+    <a href="/system-health">Health</a>
   </div>
 </nav>
 
