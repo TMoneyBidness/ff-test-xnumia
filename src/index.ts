@@ -6,6 +6,7 @@ import { webhooks } from './router/webhooks'
 import { dashboard } from './router/dashboard'
 import { mcp } from './router/mcp'
 import { mcpManifest } from './router/mcp-manifest'
+import { flowchart } from './router/flowchart'
 import { handleQueue } from './queue/consumer'
 
 // Re-export Durable Object and Workflow classes for Cloudflare runtime
@@ -24,6 +25,7 @@ app.route('/', webhooks)
 app.route('/', dashboard)
 app.route('/', mcp)
 app.route('/', mcpManifest)
+app.route('/', flowchart)
 
 // Worker export — fetch handler + queue consumer
 export default {
