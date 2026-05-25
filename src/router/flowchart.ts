@@ -176,7 +176,8 @@ const FLOWCHART_HTML = `<!DOCTYPE html>
   <div class="nav-links">
     <a href="/dashboard">Dashboard</a>
     <a href="/flowchart" class="active">Architecture</a>
-    <a href="/mcp/manifest">MCP API</a>
+    <a href="/agents">Agents</a>
+    <a href="/mcp/manifest">API</a>
     <a href="/health">Health</a>
   </div>
 </nav>

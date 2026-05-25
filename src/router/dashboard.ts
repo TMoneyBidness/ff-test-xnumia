@@ -40,12 +40,32 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
     line-height: 1.5;
   }
 
+  .site-nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 32px;
+    background: rgba(10, 14, 26, 0.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(99, 102, 241, 0.15);
+    position: sticky; top: 0; z-index: 200;
+  }
+  .site-nav .nav-brand {
+    font-size: 18px; font-weight: 700;
+    background: linear-gradient(135deg, #818cf8, #6366f1);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .site-nav .nav-links a {
+    color: #94a3b8; text-decoration: none; font-size: 14px; font-weight: 500;
+    margin-left: 24px; transition: color 0.2s;
+  }
+  .site-nav .nav-links a:hover { color: #e2e8f0; }
+  .site-nav .nav-links a.active { color: #e2e8f0; }
+
   .header {
     background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
     border-bottom: 1px solid var(--border);
     padding: 1.25rem 2rem;
     position: sticky;
-    top: 0;
+    top: 52px;
     z-index: 100;
   }
 
@@ -470,6 +490,17 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
 </style>
 </head>
 <body>
+
+<nav class="site-nav">
+  <div class="nav-brand">XNUMIA</div>
+  <div class="nav-links">
+    <a href="/dashboard" class="active">Dashboard</a>
+    <a href="/flowchart">Architecture</a>
+    <a href="/agents">Agents</a>
+    <a href="/mcp/manifest">API</a>
+    <a href="/health">Health</a>
+  </div>
+</nav>
 
 <header class="header">
   <div class="header-inner">
