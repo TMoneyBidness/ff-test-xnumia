@@ -1,0 +1,99 @@
+name = "ff-test"
+main = "src/index.ts"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+ENVIRONMENT = "sandbox"
+
+# ── Durable Objects ─────────────────────────────────────────────
+[[durable_objects.bindings]]
+name = "ORCHESTRATOR"
+class_name = "OrchestratorDO"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["OrchestratorDO"]
+
+# ── D1 (Control DB) ─────────────────────────────────────────────
+[[d1_databases]]
+binding = "DB"
+database_name = "ff-test-control-db"
+database_id = "cd4d2bdf-cbe0-4ea8-a48c-6c76f96865c1"
+
+# ── R2 (Documents + Audit Logs) ─────────────────────────────────
+[[r2_buckets]]
+binding = "DOCUMENTS"
+bucket_name = "ff-test-documents"
+
+# ── Queues ──────────────────────────────────────────────────────
+[[queues.producers]]
+binding = "TASK_QUEUE"
+queue = "ff-test-task-queue"
+
+[[queues.producers]]
+binding = "DLQ"
+queue = "ff-test-dlq"
+
+[[queues.consumers]]
+queue = "ff-test-task-queue"
+max_batch_size = 10
+max_batch_timeout = 30
+max_retries = 3
+dead_letter_queue = "ff-test-dlq"
+
+# ── Workflows v2 ────────────────────────────────────────────────
+[[workflows]]
+binding = "ENGAGEMENT_WORKFLOW"
+name = "engagement-workflow"
+class_name = "EngagementWorkflow"
+
+# ══════════════════════════════════════════════════════════════
+# ENVIRONMENTS
+# ══════════════════════════════════════════════════════════════
+
+[env.dev]
+name = "ff-test-dev"
+
+[env.dev.vars]
+ENVIRONMENT = "sandbox"
+
+[[env.dev.d1_databases]]
+binding = "DB"
+database_name = "ff-test-control-db"
+database_id = "cd4d2bdf-cbe0-4ea8-a48c-6c76f96865c1"
+
+[[env.dev.r2_buckets]]
+binding = "DOCUMENTS"
+bucket_name = "ff-test-documents"
+
+[[env.dev.queues.producers]]
+binding = "TASK_QUEUE"
+queue = "ff-test-task-queue"
+
+[[env.dev.queues.producers]]
+binding = "DLQ"
+queue = "ff-test-dlq"
+
+[[env.dev.durable_objects.bindings]]
+name = "ORCHESTRATOR"
+class_name = "OrchestratorDO"
+
+[[env.dev.workflows]]
+binding = "ENGAGEMENT_WORKFLOW"
+name = "engagement-workflow"
+class_name = "EngagementWorkflow"
+
+[env.qa]
+name = "ff-test-qa"
+
+[env.qa.vars]
+ENVIRONMENT = "sandbox"
+# Add qa-specific database/bucket IDs here when created
+
+[env.prod]
+name = "ff-test-prod"
+
+[env.prod.vars]
+ENVIRONMENT = "production"
+# Add prod-specific database/bucket IDs here when created

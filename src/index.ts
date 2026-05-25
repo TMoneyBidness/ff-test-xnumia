@@ -1,0 +1,34 @@
+import { Hono } from 'hono'
+import type { Env } from './lib/env'
+import { health } from './router/health'
+import { transactions } from './router/transactions'
+import { webhooks } from './router/webhooks'
+import { dashboard } from './router/dashboard'
+import { mcp } from './router/mcp'
+import { mcpManifest } from './router/mcp-manifest'
+import { handleQueue } from './queue/consumer'
+
+// Re-export Durable Object and Workflow classes for Cloudflare runtime
+export { OrchestratorDO } from './durable-objects/orchestrator'
+export { EngagementWorkflow } from './workflows/engagement'
+
+const app = new Hono<{ Bindings: Env }>()
+
+// Root
+app.get('/', (c) => c.json({ status: 'ff-test online', version: '0.1.0' }))
+
+// Mount route groups
+app.route('/', health)
+app.route('/', transactions)
+app.route('/', webhooks)
+app.route('/', dashboard)
+app.route('/', mcp)
+app.route('/', mcpManifest)
+
+// Worker export — fetch handler + queue consumer
+export default {
+  fetch: app.fetch,
+  async queue(batch: MessageBatch<{ type: string; payload: Record<string, unknown> }>, env: Env): Promise<void> {
+    await handleQueue(batch, env)
+  },
+}

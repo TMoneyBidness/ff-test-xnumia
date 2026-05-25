@@ -1,0 +1,23 @@
+{
+  "name": "ff-test",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "dev:env": "wrangler dev --env dev",
+    "deploy": "wrangler deploy",
+    "deploy:dev": "wrangler deploy --env dev",
+    "deploy:prod": "wrangler deploy --env prod",
+    "db:migrate": "wrangler d1 execute ff-test-control-db --file=sql/001-init.sql",
+    "db:migrate:dev": "wrangler d1 execute ff-test-control-db --file=sql/001-init.sql --env dev"
+  },
+  "dependencies": {
+    "hono": "^4.4.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240903.0",
+    "typescript": "^5.9.3",
+    "wrangler": "^3.72.0"
+  }
+}
