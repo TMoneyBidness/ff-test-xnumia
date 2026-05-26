@@ -1,5 +1,6 @@
 import type { Env } from '../lib/env'
 import type { PaymentRequest, PipelineResult, PipelineAgent, AgentResult } from './types'
+import { createAdapters } from '../adapters/factory'
 import { ValidateAgent } from './validate'
 import { QuoteAgent } from './quote'
 import { ScreenAgent } from './screen'
@@ -17,18 +18,22 @@ import { ReconcileAgent } from './reconcile'
  * Steps 1-3 are pre-execution (gate checks).
  * Steps 4-5 are post-authorization (fund movement + bookkeeping).
  * Pipeline short-circuits on any RED verdict.
+ *
+ * Adapters are resolved via factory based on ENVIRONMENT — agents
+ * never instantiate adapters directly (Port/Adapter rule).
  */
 export async function runPipeline(
   request: PaymentRequest,
   env: Env,
 ): Promise<PipelineResult> {
   const pipelineStart = Date.now()
+  const adapters = createAdapters(env)
 
   const agents: PipelineAgent[] = [
     new ValidateAgent(),
     new QuoteAgent(),
     new ScreenAgent(env),
-    new ExecuteAgent(env),
+    new ExecuteAgent(env, adapters.bank, adapters.exchange),
     new ReconcileAgent(env),
   ]
 
