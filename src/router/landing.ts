@@ -283,6 +283,31 @@ const LANDING_HTML = `<!DOCTYPE html>
     font-size: 14px; color: #94a3b8; line-height: 1.7;
   }
 
+  /* ── System Diagram ─────────────────────── */
+  .diagram-wrap {
+    position: relative; width: 100%; max-width: 1100px;
+    margin: 0 auto;
+  }
+  .diagram-wrap canvas {
+    width: 100%; border-radius: 12px;
+    background: radial-gradient(ellipse at center, #111827 0%, #0a0e1a 70%);
+    border: 1px solid rgba(99,102,241,0.1);
+  }
+  .diagram-tabs {
+    display: flex; justify-content: center; gap: 8px; margin-bottom: 20px;
+  }
+  .diagram-tab {
+    padding: 8px 20px; border-radius: 6px; font-size: 13px; font-weight: 600;
+    background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.2);
+    color: #94a3b8; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.2s;
+  }
+  .diagram-tab:hover { background: rgba(99,102,241,0.15); color: #e2e8f0; }
+  .diagram-tab.active { background: #6366f1; border-color: #6366f1; color: #fff; }
+  .diagram-caption {
+    text-align: center; font-size: 13px; color: #64748b; margin-top: 12px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
   /* ── Footer ──────────────────────────────── */
   .footer {
     text-align: center; padding: 48px 32px;
@@ -359,6 +384,22 @@ const LANDING_HTML = `<!DOCTYPE html>
         <p>The Orchestrator collects all verdicts. All green &mdash; auto-approve. Any amber &mdash; escalate to human. Any red &mdash; auto-reject. Every decision is logged.</p>
       </div>
     </div>
+  </div>
+</section>
+
+<!-- ── System Diagram ─────────────────────────────────────────────────── -->
+<section class="section" style="background: rgba(15, 23, 42, 0.3);">
+  <div class="container">
+    <h2 class="section-title">System Diagram</h2>
+    <p class="section-subtitle">Two flows, one infrastructure. Click to see how each path works.</p>
+    <div class="diagram-tabs">
+      <button class="diagram-tab active" onclick="switchDiagram('pipeline')">Payment Pipeline</button>
+      <button class="diagram-tab" onclick="switchDiagram('transaction')">Transaction Orchestrator</button>
+    </div>
+    <div class="diagram-wrap">
+      <canvas id="sysdiagram"></canvas>
+    </div>
+    <div class="diagram-caption" id="diagram-caption">A payment request enters the Worker, gets stored in D1, flows through 5 agents, and reaches a verdict.</div>
   </div>
 </section>
 
@@ -619,6 +660,332 @@ const LANDING_HTML = `<!DOCTYPE html>
 <footer class="footer">
   Xnumia &mdash; Agent-run stablecoin orchestration &bull; Built on Cloudflare Workers &bull; Phase 0 Foundation
 </footer>
+
+<script>
+// ── System Diagram Canvas ──────────────────────────────────────────────
+const cv = document.getElementById('sysdiagram');
+const cx = cv.getContext('2d');
+const DPR = window.devicePixelRatio || 1;
+let cW, cH, mode = 'pipeline';
+
+function resizeCanvas() {
+  const r = cv.parentElement.getBoundingClientRect();
+  cW = r.width; cH = 480;
+  cv.width = cW * DPR; cv.height = cH * DPR;
+  cv.style.height = cH + 'px';
+  cx.setTransform(DPR, 0, 0, DPR, 0, 0);
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+const COL = {
+  indigo: '#6366f1', indigoGlow: 'rgba(99,102,241,0.25)',
+  green: '#22c55e', greenGlow: 'rgba(34,197,94,0.25)',
+  amber: '#f59e0b', amberGlow: 'rgba(245,158,11,0.25)',
+  red: '#ef4444', cyan: '#06b6d4', cyanGlow: 'rgba(6,182,212,0.25)',
+  card: '#1e293b', text: '#e2e8f0', dim: '#64748b', bg: '#111827',
+};
+
+let particles = [];
+let animT = 0;
+
+function box(x, y, w, h, label, sub, color, icon) {
+  // Glow
+  cx.shadowColor = color || COL.indigo;
+  cx.shadowBlur = 16;
+  cx.fillStyle = COL.card;
+  cx.beginPath();
+  cx.roundRect(x - w/2, y - h/2, w, h, 8);
+  cx.fill();
+  cx.shadowBlur = 0;
+  // Border
+  cx.strokeStyle = color || COL.indigo;
+  cx.lineWidth = 1.5;
+  cx.stroke();
+  // Icon
+  if (icon) {
+    cx.font = '18px sans-serif';
+    cx.textAlign = 'center'; cx.textBaseline = 'middle';
+    cx.fillText(icon, x, y - (sub ? 8 : 0));
+  }
+  // Label
+  cx.font = '600 11px Inter, sans-serif';
+  cx.textAlign = 'center'; cx.textBaseline = 'middle';
+  cx.fillStyle = COL.text;
+  if (icon) {
+    cx.fillText(label, x, y + (sub ? 8 : 14));
+  } else {
+    cx.fillText(label, x, y - 4);
+  }
+  // Sub
+  if (sub) {
+    cx.font = '10px JetBrains Mono, monospace';
+    cx.fillStyle = COL.dim;
+    cx.fillText(sub, x, y + 22);
+  }
+}
+
+function arrow(x1, y1, x2, y2, color, dashed) {
+  cx.beginPath();
+  cx.moveTo(x1, y1); cx.lineTo(x2, y2);
+  cx.strokeStyle = color || 'rgba(99,102,241,0.3)';
+  cx.lineWidth = 1.5;
+  if (dashed) cx.setLineDash([4, 4]);
+  cx.stroke();
+  cx.setLineDash([]);
+  // Arrowhead
+  const angle = Math.atan2(y2 - y1, x2 - x1);
+  const hl = 8;
+  cx.beginPath();
+  cx.moveTo(x2, y2);
+  cx.lineTo(x2 - hl * Math.cos(angle - 0.4), y2 - hl * Math.sin(angle - 0.4));
+  cx.lineTo(x2 - hl * Math.cos(angle + 0.4), y2 - hl * Math.sin(angle + 0.4));
+  cx.closePath();
+  cx.fillStyle = color || 'rgba(99,102,241,0.5)';
+  cx.fill();
+}
+
+function dot(x, y, size, color) {
+  cx.beginPath();
+  cx.arc(x, y, size, 0, Math.PI * 2);
+  cx.fillStyle = color;
+  cx.fill();
+  cx.beginPath();
+  cx.arc(x, y, size + 3, 0, Math.PI * 2);
+  cx.fillStyle = color.replace(')', ',0.2)').replace('rgb', 'rgba');
+  cx.fill();
+}
+
+function spawnFlow(path, color, count) {
+  for (let i = 0; i < count; i++) {
+    particles.push({
+      path, color, progress: -i * 0.08,
+      speed: 0.004 + Math.random() * 0.003,
+      size: 2 + Math.random() * 1.5,
+    });
+  }
+}
+
+function drawPipeline() {
+  const midX = cW / 2;
+  const agentNames = ['Intake', 'Compliance', 'FX', 'Risk', 'Recon'];
+  const agentIcons = ['\\u{1F4CB}', '\\u{1F6E1}', '\\u{1F4B1}', '\\u26A0', '\\u{1F4CA}'];
+  const agentW = Math.min(100, (cW - 100) / 5 - 10);
+  const agentSpacing = Math.min(120, (cW - 80) / 5);
+  const agentsStartX = midX - (agentSpacing * 2);
+
+  // Positions
+  const userY = 40, workerY = 100, d1Y = 170, agentY = 260, orchY = 340, outcomeY = 420;
+
+  // User
+  box(midX, userY, 140, 36, 'API Client / User', null, COL.cyan, '\\u{1F464}');
+
+  // Worker
+  box(midX, workerY, 180, 40, 'Cloudflare Worker', 'Hono Router', COL.indigo, '\\u26A1');
+
+  // D1
+  box(midX - 180, d1Y, 140, 36, 'D1 Database', 'payment_requests', COL.green, '\\u{1F5C4}');
+
+  // Agents
+  for (let i = 0; i < 5; i++) {
+    const ax = agentsStartX + i * agentSpacing;
+    box(ax, agentY, agentW, 44, agentNames[i], null, COL.indigo, agentIcons[i]);
+  }
+
+  // agent_decisions
+  const adX = midX + 220;
+  box(adX, agentY, 130, 36, 'agent_decisions', 'D1 audit trail', COL.green, '\\u{1F4DD}');
+
+  // Orchestrator
+  box(midX, orchY, 160, 40, 'Orchestrator', 'Verdict Aggregation', COL.indigo, '\\u{1F3AF}');
+
+  // Outcomes
+  box(midX - 180, outcomeY, 120, 36, 'Auto-Approve', null, COL.green, '\\u2705');
+  box(midX, outcomeY, 120, 36, 'Escalate', 'Human Review', COL.amber, '\\u{1F465}');
+  box(midX + 180, outcomeY, 120, 36, 'Auto-Reject', null, COL.red, '\\u274C');
+
+  // Arrows
+  arrow(midX, userY + 18, midX, workerY - 20, 'rgba(6,182,212,0.4)');
+  arrow(midX - 40, workerY + 20, midX - 180, d1Y - 18, 'rgba(34,197,94,0.3)');
+  arrow(midX, workerY + 20, agentsStartX, agentY - 22, 'rgba(99,102,241,0.3)');
+  // Agent chain
+  for (let i = 0; i < 4; i++) {
+    const ax1 = agentsStartX + i * agentSpacing + agentW / 2;
+    const ax2 = agentsStartX + (i + 1) * agentSpacing - agentW / 2;
+    arrow(ax1, agentY, ax2, agentY, 'rgba(99,102,241,0.25)');
+  }
+  // Agents → agent_decisions
+  const lastAgentX = agentsStartX + 4 * agentSpacing;
+  arrow(lastAgentX + agentW / 2, agentY, adX - 65, agentY, 'rgba(34,197,94,0.25)', true);
+  // Agents → Orchestrator
+  arrow(midX, agentY + 22, midX, orchY - 20, 'rgba(99,102,241,0.3)');
+  // Orchestrator → outcomes
+  arrow(midX - 30, orchY + 20, midX - 180, outcomeY - 18, 'rgba(34,197,94,0.3)');
+  arrow(midX, orchY + 20, midX, outcomeY - 18, 'rgba(245,158,11,0.3)');
+  arrow(midX + 30, orchY + 20, midX + 180, outcomeY - 18, 'rgba(239,68,68,0.3)');
+
+  // Label: "HTTPS POST"
+  cx.font = '500 9px JetBrains Mono, monospace';
+  cx.fillStyle = COL.dim; cx.textAlign = 'left';
+  cx.fillText('HTTPS POST', midX + 8, userY + 34);
+  cx.fillText('writes to D1', midX - 160, workerY + 42);
+  cx.fillText('each agent writes verdict', adX - 120, agentY - 32);
+
+  return [
+    // Flow: user → worker → agents → orchestrator → approve
+    [{x: midX, y: userY+18}, {x: midX, y: workerY}, {x: agentsStartX, y: agentY},
+     ...agentNames.map((_, i) => ({x: agentsStartX + i * agentSpacing, y: agentY})),
+     {x: midX, y: orchY}, {x: midX - 180, y: outcomeY}],
+  ];
+}
+
+function drawTransaction() {
+  const midX = cW / 2;
+  const userY = 40, workerY = 100, d1Y = 170, doY = 260, queueY = 340, wfY = 340, outcomeY = 430;
+
+  // User
+  box(midX, userY, 140, 36, 'API Client', null, COL.cyan, '\\u{1F464}');
+
+  // Worker
+  box(midX, workerY, 180, 40, 'Cloudflare Worker', 'POST /transactions', COL.indigo, '\\u26A1');
+
+  // D1
+  box(midX - 200, d1Y, 150, 36, 'D1 Database', 'transactions table', COL.green, '\\u{1F5C4}');
+
+  // Durable Object
+  box(midX, doY, 200, 50, 'Durable Object', 'Per-transaction state machine', COL.amber, '\\u{1F512}');
+
+  // State labels
+  cx.font = '500 10px JetBrains Mono, monospace';
+  cx.textAlign = 'center'; cx.fillStyle = COL.dim;
+  const states = ['INITIATED', 'PENDING_PSP', 'PENDING_SETTLEMENT', 'SETTLED', 'RECONCILED'];
+  const stateW = Math.min(cW - 100, 700);
+  const stateStartX = midX - stateW / 2;
+  for (let i = 0; i < states.length; i++) {
+    const sx = stateStartX + (stateW / 4) * i;
+    const sy = doY + 50;
+    // State circle
+    cx.beginPath();
+    cx.arc(sx, sy, 6, 0, Math.PI * 2);
+    cx.fillStyle = i === 0 ? COL.indigo : i === 4 ? COL.green : COL.dim;
+    cx.fill();
+    // Label
+    cx.font = '500 8px JetBrains Mono, monospace';
+    cx.fillStyle = i === 0 ? COL.indigo : i === 4 ? COL.green : COL.dim;
+    cx.fillText(states[i], sx, sy + 16);
+    // Arrow to next
+    if (i < 4) {
+      const nx = stateStartX + (stateW / 4) * (i + 1);
+      arrow(sx + 8, sy, nx - 8, sy, 'rgba(99,102,241,0.2)');
+    }
+  }
+
+  // Queue
+  box(midX - 180, queueY, 130, 40, 'Queue', 'Async tasks', COL.cyan, '\\u{1F4EC}');
+
+  // DLQ
+  box(midX - 180, queueY + 60, 100, 30, 'Dead Letter Q', 'Poison msgs', COL.red, '\\u{1F4AD}');
+
+  // Workflow
+  box(midX + 180, wfY, 160, 40, 'Workflow v2', 'Human approval gate', COL.indigo, '\\u{1F504}');
+
+  // R2
+  box(midX + 180, wfY + 60, 130, 30, 'R2 Storage', 'Compliance docs', COL.green, '\\u{1F4E6}');
+
+  // External adapters
+  box(midX, outcomeY, 180, 40, 'Port/Adapter Layer', 'Swappable integrations', COL.indigo, '\\u{1F50C}');
+
+  // External systems
+  const extY = outcomeY + 55;
+  const extSpacing = Math.min(160, (cW - 60) / 4);
+  const extStartX = midX - extSpacing * 1.5;
+  const exts = [
+    {label: 'Bank API', icon: '\\u{1F3E6}', color: COL.cyan},
+    {label: 'PSP Bridge', icon: '\\u{1F310}', color: COL.amber},
+    {label: 'Exchange', icon: '\\u{1F4B1}', color: COL.green},
+    {label: 'Accounting', icon: '\\u{1F4DA}', color: COL.indigo},
+  ];
+  // Only show if there's room
+  if (cH > 460) {
+    exts.forEach((e, i) => {
+      const ex = extStartX + i * extSpacing;
+      box(ex, extY, 100, 30, e.label, null, e.color, e.icon);
+      arrow(ex, outcomeY + 20, ex, extY - 15, (e.color + '44'), i === 1);
+    });
+    // PSP label
+    cx.font = '500 8px JetBrains Mono, monospace';
+    cx.fillStyle = COL.amber;
+    cx.textAlign = 'center';
+    cx.fillText('Phase 1 only', extStartX + extSpacing, extY + 22);
+  }
+
+  // Arrows
+  arrow(midX, userY + 18, midX, workerY - 20, 'rgba(6,182,212,0.4)');
+  arrow(midX - 40, workerY + 20, midX - 200, d1Y - 18, 'rgba(34,197,94,0.3)');
+  arrow(midX, workerY + 20, midX, doY - 25, 'rgba(245,158,11,0.3)');
+  arrow(midX - 60, doY + 10, midX - 180, queueY - 20, 'rgba(6,182,212,0.3)');
+  arrow(midX + 60, doY + 10, midX + 180, wfY - 20, 'rgba(99,102,241,0.3)');
+  arrow(midX - 180, queueY + 20, midX - 180, queueY + 40, 'rgba(239,68,68,0.2)', true);
+  arrow(midX + 180, wfY + 20, midX + 180, wfY + 40, 'rgba(34,197,94,0.2)', true);
+  arrow(midX, doY + 25, midX, outcomeY - 20, 'rgba(99,102,241,0.2)');
+
+  // Labels
+  cx.font = '500 9px JetBrains Mono, monospace';
+  cx.fillStyle = COL.dim; cx.textAlign = 'left';
+  cx.fillText('HTTPS POST', midX + 8, userY + 34);
+  cx.fillText('creates record', midX - 170, workerY + 40);
+  cx.fillText('creates/resumes DO', midX + 8, workerY + 50);
+
+  return [];
+}
+
+function switchDiagram(m) {
+  mode = m;
+  particles = [];
+  document.querySelectorAll('.diagram-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector('.diagram-tab:' + (m === 'pipeline' ? 'first-child' : 'last-child')).classList.add('active');
+  document.getElementById('diagram-caption').textContent =
+    m === 'pipeline'
+      ? 'A payment request enters the Worker, gets stored in D1, flows through 5 agents, and reaches a verdict.'
+      : 'A transaction enters the Worker, gets stored in D1, and is managed by a Durable Object state machine with Queue and Workflow support.';
+}
+window.switchDiagram = switchDiagram;
+
+let lastT = 0;
+function animDiagram(ts) {
+  const dt = ts - lastT; lastT = ts;
+  animT += dt;
+
+  resizeCanvas();
+  cx.clearRect(0, 0, cW, cH);
+
+  // Grid dots
+  cx.fillStyle = 'rgba(99,102,241,0.03)';
+  for (let gx = 0; gx < cW; gx += 25) {
+    for (let gy = 0; gy < cH; gy += 25) {
+      cx.beginPath(); cx.arc(gx, gy, 0.8, 0, Math.PI * 2); cx.fill();
+    }
+  }
+
+  if (mode === 'pipeline') drawPipeline();
+  else drawTransaction();
+
+  // Animate a pulse on key nodes
+  const pulse = 0.5 + 0.5 * Math.sin(animT / 500);
+  cx.globalAlpha = pulse * 0.3;
+  if (mode === 'pipeline') {
+    cx.beginPath(); cx.arc(cW / 2, 260, 8, 0, Math.PI * 2);
+    cx.fillStyle = COL.indigo; cx.fill();
+  } else {
+    cx.beginPath(); cx.arc(cW / 2, 260, 8, 0, Math.PI * 2);
+    cx.fillStyle = COL.amber; cx.fill();
+  }
+  cx.globalAlpha = 1;
+
+  requestAnimationFrame(animDiagram);
+}
+requestAnimationFrame(animDiagram);
+</script>
 
 </body>
 </html>`
