@@ -14,7 +14,7 @@ const SIMULATE_HTML = `<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Xnumia &mdash; Live Transaction Simulator</title>
+<title>Live Transaction Simulator</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -375,7 +375,7 @@ const SIMULATE_HTML = `<!DOCTYPE html>
 
 <!-- ── Nav ──────────────────────────────────────────────────────────────── -->
 <nav class="nav">
-  <div class="nav-brand">XNUMIA</div>
+  <div class="nav-brand">FF-TEST</div>
   <div class="nav-links">
     <a href="/">Overview</a>
     <a href="/dashboard">Dashboard</a>
@@ -461,7 +461,7 @@ const SIMULATE_HTML = `<!DOCTYPE html>
 
 <!-- ── Footer ──────────────────────────────────────────────────────────── -->
 <footer class="footer">
-  Xnumia &mdash; Agent-run stablecoin orchestration &bull; Built on Cloudflare Workers &bull; Phase 0 Foundation
+  Agent-run stablecoin orchestration &bull; Built on Cloudflare Workers &bull; Phase 0 Foundation
 </footer>
 
 <script>

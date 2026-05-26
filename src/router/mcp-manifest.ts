@@ -5,9 +5,9 @@ const mcpManifest = new Hono<{ Bindings: Env }>()
 
 mcpManifest.get('/mcp/manifest', (c) => {
   return c.json({
-    name: 'xnumia-payment-pipeline',
+    name: 'payment-pipeline',
     version: '0.1.0',
-    description: 'Xnumia payment request processing pipeline with autonomous agent evaluation',
+    description: 'Payment request processing pipeline with autonomous agent evaluation',
     tools: [
       {
         name: 'submit_payment',

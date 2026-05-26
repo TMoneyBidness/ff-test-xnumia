@@ -14,7 +14,7 @@ const LANDING_HTML = `<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Xnumia — Agent-run Stablecoin Orchestration</title>
+<title>Agent-run Stablecoin Orchestration</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -524,7 +524,7 @@ const LANDING_HTML = `<!DOCTYPE html>
 
 <!-- ── Nav ──────────────────────────────────────────────────────────────── -->
 <nav class="nav">
-  <div class="nav-brand">XNUMIA</div>
+  <div class="nav-brand">FF-TEST</div>
   <div class="nav-links">
     <a href="/" class="active">Overview</a>
     <a href="/dashboard">Dashboard</a>
@@ -538,7 +538,7 @@ const LANDING_HTML = `<!DOCTYPE html>
 
 <!-- ── Hero ─────────────────────────────────────────────────────────────── -->
 <section class="hero">
-  <h1>Xnumia</h1>
+  <h1>Agent-run Stablecoin Orchestration</h1>
   <div class="tagline">Agent-run stablecoin orchestration</div>
   <p class="one-liner">10 autonomous agents run the entire payment operations stack. 5 process every transaction inline. 5 run the back office continuously. No human touches a clean payment.</p>
 </section>
@@ -961,7 +961,7 @@ const LANDING_HTML = `<!DOCTYPE html>
 
 <!-- ── Footer ──────────────────────────────────────────────────────────── -->
 <footer class="footer">
-  Xnumia &mdash; Agent-run stablecoin orchestration &bull; Built on Cloudflare Workers &bull; Phase 0 Foundation
+  Agent-run stablecoin orchestration &bull; Built on Cloudflare Workers &bull; Phase 0 Foundation
 </footer>
 
 <script>

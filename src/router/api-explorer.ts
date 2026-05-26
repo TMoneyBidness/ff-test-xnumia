@@ -10,7 +10,7 @@ apiExplorer.get('/api-explorer', (c) => {
 // Keep the raw JSON manifest available
 apiExplorer.get('/api/mcp/manifest', (c) => {
   return c.json({
-    name: 'xnumia-payment-pipeline',
+    name: 'payment-pipeline',
     version: '0.1.0',
     tools: 'See /mcp/manifest for full tool definitions',
   })
@@ -23,7 +23,7 @@ const API_HTML = `<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Xnumia \\u2014 API Explorer</title>
+<title>API Explorer</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -127,7 +127,7 @@ const API_HTML = `<!DOCTYPE html>
 </head>
 <body>
 <nav class="nav">
-  <div class="nav-brand">XNUMIA</div>
+  <div class="nav-brand">FF-TEST</div>
   <div class="nav-links">
     <a href="/">Overview</a>
     <a href="/dashboard">Dashboard</a>

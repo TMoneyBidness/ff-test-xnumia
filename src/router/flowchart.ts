@@ -14,7 +14,7 @@ const FLOWCHART_HTML = `<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Xnumia — Pipeline Architecture</title>
+<title>Pipeline Architecture</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -172,7 +172,7 @@ const FLOWCHART_HTML = `<!DOCTYPE html>
 <body>
 
 <nav class="nav">
-  <div class="nav-brand">XNUMIA</div>
+  <div class="nav-brand">FF-TEST</div>
   <div class="nav-links">
     <a href="/">Overview</a>
     <a href="/dashboard">Dashboard</a>
@@ -236,7 +236,7 @@ const FLOWCHART_HTML = `<!DOCTYPE html>
 </div>
 
 <footer class="footer">
-  Xnumia &mdash; Agent-run stablecoin orchestration &bull; Built on Cloudflare Workers
+  Agent-run stablecoin orchestration &bull; Built on Cloudflare Workers
 </footer>
 
 <script>

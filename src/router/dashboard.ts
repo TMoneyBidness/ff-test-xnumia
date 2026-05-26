@@ -13,7 +13,7 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Xnumia \u2014 Payment Pipeline</title>
+<title>Payment Pipeline</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -492,7 +492,7 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
 <body>
 
 <nav class="site-nav">
-  <div class="nav-brand">XNUMIA</div>
+  <div class="nav-brand">FF-TEST</div>
   <div class="nav-links">
     <a href="/">Overview</a>
     <a href="/dashboard" class="active">Dashboard</a>
@@ -506,7 +506,7 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
 
 <header class="header">
   <div class="header-inner">
-    <h1><span>Xnumia</span> \\u2014 Payment Pipeline</h1>
+    <h1>Payment Pipeline Dashboard</h1>
     <div class="stats-bar">
       <div class="stat">
         <div class="stat-value" id="stat-total">\\u2014</div>
