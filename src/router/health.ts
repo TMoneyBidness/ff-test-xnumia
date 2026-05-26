@@ -118,6 +118,7 @@ health.get('/system-health', async (c) => {
     <a href="/flowchart">Architecture</a>
     <a href="/agents">Agents</a>
     <a href="/api-explorer">API</a>
+    <a href="/simulate">Simulate</a>
     <a href="/system-health" class="active">Health</a>
     <a href="/readiness">Readiness</a>
   </div>

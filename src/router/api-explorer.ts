@@ -134,6 +134,7 @@ const API_HTML = `<!DOCTYPE html>
     <a href="/flowchart">Architecture</a>
     <a href="/agents">Agents</a>
     <a href="/api-explorer" class="active">API</a>
+    <a href="/simulate">Simulate</a>
     <a href="/readiness">Readiness</a>
   </div>
 </nav>
