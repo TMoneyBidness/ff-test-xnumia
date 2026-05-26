@@ -2,6 +2,7 @@ import type { Env } from '../lib/env'
 import type { BankPort, ExchangePort, PSPPort, AccountingPort, CompliancePort, VerificationPort } from './ports'
 import { MockBankAdapter } from './bank/mock'
 import { MockExchangeAdapter } from './exchange/mock'
+import { BridgeSimExchangeAdapter } from './exchange/bridge-sim'
 import { MockPSPAdapter } from './psp/mock'
 import { MockAccountingAdapter } from './accounting/mock'
 import { StripeClient } from './stripe-client'
@@ -81,10 +82,10 @@ export function createAdapters(env: Env): AdapterSet {
     }
   }
 
-  // Sandbox: always use mocks
+  // Sandbox: use Bridge simulator for exchange, mocks for everything else
   return {
     bank: new MockBankAdapter(),
-    exchange: new MockExchangeAdapter(),
+    exchange: new BridgeSimExchangeAdapter(env.DB),
     psp: new MockPSPAdapter(),
     accounting: new MockAccountingAdapter(),
     compliance: mockCompliance,

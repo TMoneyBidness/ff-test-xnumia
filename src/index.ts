@@ -11,6 +11,7 @@ import { agentsDetail } from './router/agents-detail'
 import { apiExplorer } from './router/api-explorer'
 import { landing } from './router/landing'
 import { readiness } from './router/readiness'
+import { bridgeSimulator } from './router/bridge-simulator'
 import { handleQueue } from './queue/consumer'
 import { runOpsAgents } from './agents/ops-runner'
 
@@ -32,6 +33,7 @@ app.route('/', flowchart)
 app.route('/', agentsDetail)
 app.route('/', apiExplorer)
 app.route('/', readiness)
+app.route('/', bridgeSimulator)
 
 // Trigger all 5 operations agents manually
 app.post('/ops/run', async (c) => {
