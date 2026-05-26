@@ -33,7 +33,7 @@ export async function runPipeline(
     new ValidateAgent(),
     new QuoteAgent(),
     new ScreenAgent(env),
-    new ExecuteAgent(env, adapters.bank, adapters.exchange),
+    new ExecuteAgent(env, adapters.bank, adapters.exchange, adapters.psp),
     new ReconcileAgent(env),
   ]
 

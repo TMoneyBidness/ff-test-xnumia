@@ -4,6 +4,9 @@ import { MockBankAdapter } from './bank/mock'
 import { MockExchangeAdapter } from './exchange/mock'
 import { MockPSPAdapter } from './psp/mock'
 import { MockAccountingAdapter } from './accounting/mock'
+import { StripeClient } from './stripe-client'
+import { StripePSPAdapter } from './psp/stripe'
+import { StripeBankAdapter } from './bank/stripe-partial'
 
 /**
  * Adapter factory — the single place where adapter selection happens.
@@ -54,9 +57,20 @@ const mockVerification: VerificationPort = {
 
 export function createAdapters(env: Env): AdapterSet {
   if (env.ENVIRONMENT === 'production') {
-    // Phase 1: real adapters would be instantiated here
-    // Phase 2: PSP adapter removed, bank/exchange go direct
-    // For now, even production uses mocks until real adapters are built
+    if (env.STRIPE_SECRET_KEY) {
+      const stripeClient = new StripeClient(env.STRIPE_SECRET_KEY, env.DOCUMENTS)
+      return {
+        bank: new StripeBankAdapter(stripeClient),
+        exchange: new MockExchangeAdapter(), // Exchange adapter remains mock until Bridge integration
+        psp: new StripePSPAdapter(stripeClient),
+        accounting: new MockAccountingAdapter(),
+        compliance: mockCompliance,
+        verification: mockVerification,
+      }
+    }
+
+    // No Stripe key configured — fall back to mocks with a warning
+    console.warn('[AdapterFactory] STRIPE_SECRET_KEY not set in production — falling back to mock adapters')
     return {
       bank: new MockBankAdapter(),
       exchange: new MockExchangeAdapter(),

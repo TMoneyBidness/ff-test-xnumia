@@ -69,4 +69,19 @@ export class MockBankAdapter implements BankPort {
     }
     return { ...entry }
   }
+
+  async listTransactions(_params: {
+    since?: string
+    limit?: number
+  }): Promise<Array<{
+    id: string
+    amount: number
+    currency: string
+    created: string
+    description: string
+    type: string
+  }>> {
+    console.log(`[MockBankAdapter] listTransactions`, _params)
+    return []
+  }
 }

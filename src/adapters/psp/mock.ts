@@ -10,6 +10,7 @@ export class MockPSPAdapter implements PSPPort {
     destination: string
     reference: string
     idempotencyKey: string
+    direction?: 'collect' | 'disburse'
   }): Promise<{ paymentId: string; status: string }> {
     console.log(`[MockPSPAdapter] submitPayment`, params)
     const paymentId = `mock-psp-payment-${Date.now()}`

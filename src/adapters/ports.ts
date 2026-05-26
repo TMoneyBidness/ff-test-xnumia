@@ -30,6 +30,18 @@ export interface BankPort {
     settledAt?: string
     failureReason?: string
   }>
+
+  listTransactions(params: {
+    since?: string
+    limit?: number
+  }): Promise<Array<{
+    id: string
+    amount: number
+    currency: string
+    created: string
+    description: string
+    type: string
+  }>>
 }
 
 // ── PSPPort — regulatory bridge (Phase 1 only, removed in Phase 2) ──
@@ -42,6 +54,7 @@ export interface PSPPort {
     destination: string
     reference: string
     idempotencyKey: string
+    direction?: 'collect' | 'disburse'
   }): Promise<{ paymentId: string; status: string }>
 
   getPaymentStatus(paymentId: string): Promise<{

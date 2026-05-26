@@ -1,6 +1,6 @@
 import type { Env } from '../lib/env'
 import type { PipelineAgent, PaymentRequest, AgentResult } from './types'
-import type { BankPort, ExchangePort } from '../adapters/ports'
+import type { BankPort, ExchangePort, PSPPort } from '../adapters/ports'
 
 export class ExecuteAgent implements PipelineAgent {
   readonly type = 'execute' as const
@@ -10,6 +10,7 @@ export class ExecuteAgent implements PipelineAgent {
     private env: Env,
     private bank: BankPort,
     private exchange: ExchangePort,
+    private psp: PSPPort,
   ) {}
 
   async evaluate(request: PaymentRequest): Promise<AgentResult> {
@@ -54,6 +55,18 @@ export class ExecuteAgent implements PipelineAgent {
         fiatCurrency: request.currencyFrom,
         stablecoin: request.currencyTo,
       })
+
+      // Step 2.5: Submit PSP collection for AR flows
+      const pspResult = await this.psp.submitPayment({
+        amount: request.amountCents,
+        currency: request.currencyFrom,
+        source: request.clientId,
+        destination: 'acct-pipeline',
+        reference: request.id,
+        idempotencyKey: `exec-psp-${request.id}`,
+        direction: 'collect',
+      })
+      console.log(`[ExecuteAgent] PSP submission: ${pspResult.paymentId} (${pspResult.status})`)
 
       // Step 4: Write ledger entries to D1 (using correct schema columns)
       const now = new Date().toISOString()
@@ -102,6 +115,25 @@ export class ExecuteAgent implements PipelineAgent {
 
       const settlementStatus = transfer.status === 'pending' ? 'pending' : 'completed'
 
+      // If PSP payment is pending, override verdict to amber with PENDING_PSP
+      if (pspResult.status === 'pending') {
+        return {
+          agentType: this.type,
+          verdict: 'amber',
+          action: 'PENDING_PSP',
+          reasoning: 'PSP payment submitted — awaiting webhook confirmation',
+          detail: {
+            transferId: transfer.transferId,
+            conversionId: conversion.conversionId,
+            pspPaymentId: pspResult.paymentId,
+            debitEntry,
+            creditEntry,
+            settlementStatus,
+          },
+          durationMs: Date.now() - start,
+        }
+      }
+
       return {
         agentType: this.type,
         verdict: settlementStatus === 'pending' ? 'amber' : 'green',
@@ -112,6 +144,7 @@ export class ExecuteAgent implements PipelineAgent {
         detail: {
           transferId: transfer.transferId,
           conversionId: conversion.conversionId,
+          pspPaymentId: pspResult.paymentId,
           debitEntry,
           creditEntry,
           settlementStatus,
