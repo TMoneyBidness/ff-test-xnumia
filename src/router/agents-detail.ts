@@ -137,22 +137,26 @@ const AGENTS_HTML = `<!DOCTYPE html>
   }
 
   .logic-block {
-    background: rgba(15, 23, 42, 0.7);
-    border: 1px solid rgba(99, 102, 241, 0.1);
+    background: rgba(15, 23, 42, 0.5);
+    border: 1px solid rgba(99, 102, 241, 0.08);
     border-radius: 10px;
-    padding: 16px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    line-height: 1.7;
+    padding: 16px 20px;
+    font-size: 13px;
+    line-height: 1.9;
     color: #cbd5e1;
     margin-bottom: 16px;
-    overflow-x: auto;
   }
-  .logic-block .kw { color: #c084fc; }
-  .logic-block .fn { color: #818cf8; }
-  .logic-block .str { color: #34d399; }
-  .logic-block .num { color: #fbbf24; }
-  .logic-block .cmt { color: #64748b; font-style: italic; }
+  .logic-block ul { list-style: none; padding: 0; margin: 0; }
+  .logic-block li { padding: 3px 0 3px 20px; position: relative; }
+  .logic-block li::before { content: '\\25B8'; position: absolute; left: 0; color: #6366f1; }
+  .logic-block .then {
+    display: inline-block; font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; font-weight: 600; padding: 1px 8px; border-radius: 3px; margin-left: 4px;
+  }
+  .logic-block .then.red { background: rgba(239,68,68,0.15); color: #f87171; }
+  .logic-block .then.amber { background: rgba(245,158,11,0.15); color: #fbbf24; }
+  .logic-block .then.green { background: rgba(34,197,94,0.15); color: #4ade80; }
+  .logic-block .highlight { font-weight: 600; color: #e2e8f0; }
 
   .systems {
     display: flex; flex-wrap: wrap; gap: 8px;
@@ -280,28 +284,16 @@ const AGENTS_HTML = `<!DOCTYPE html>
 
     <div class="section-label">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg>
-      Decision Logic
+      What It Checks
     </div>
     <div class="logic-block">
-<span class="cmt">// Validate required fields</span>
-<span class="kw">if</span> (!clientId || !clientName || amountCents &lt;= <span class="num">0</span>)
-  <span class="kw">return</span> <span class="str">RED</span>
-
-<span class="cmt">// Currency whitelist</span>
-<span class="kw">const</span> fiat = [<span class="str">"CAD"</span>, <span class="str">"USD"</span>, <span class="str">"EUR"</span>, <span class="str">"GBP"</span>]
-<span class="kw">const</span> stablecoin = [<span class="str">"USDC"</span>, <span class="str">"USDT"</span>]
-<span class="kw">if</span> (!whitelist.<span class="fn">includes</span>(currencyFrom))
-  <span class="kw">return</span> <span class="str">RED</span>
-
-<span class="cmt">// Same-currency check</span>
-<span class="kw">if</span> (currencyFrom === currencyTo)
-  <span class="kw">return</span> <span class="str">RED</span>
-
-<span class="cmt">// Optional description</span>
-<span class="kw">if</span> (!description)
-  <span class="kw">return</span> <span class="str">AMBER</span> <span class="cmt">// warning only</span>
-
-<span class="kw">return</span> <span class="str">GREEN</span>
+      <ul>
+        <li>Missing client ID, name, or zero/negative amount <span class="then red">REJECT</span></li>
+        <li>Currency not in the accepted list (CAD, USD, EUR, GBP, USDC, USDT) <span class="then red">REJECT</span></li>
+        <li>From and To currencies are the same <span class="then red">REJECT</span></li>
+        <li>No description provided <span class="then amber">FLAG</span> &mdash; optional but recommended for audit trail</li>
+        <li>Everything checks out <span class="then green">PASS</span></li>
+      </ul>
     </div>
 
     <div class="section-label">
@@ -344,27 +336,15 @@ const AGENTS_HTML = `<!DOCTYPE html>
 
     <div class="section-label">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg>
-      Decision Logic
+      What It Checks
     </div>
     <div class="logic-block">
-<span class="cmt">// Sanctions screening (case-insensitive)</span>
-<span class="kw">const</span> sanctions = [
-  <span class="str">"SANCTIONED_CORP"</span>,
-  <span class="str">"BLOCKED_ENTITY"</span>,
-  <span class="str">"OFAC_TARGET"</span>
-]
-<span class="kw">if</span> (sanctions.<span class="fn">includes</span>(clientName.<span class="fn">toUpperCase</span>()))
-  <span class="kw">return</span> <span class="str">RED</span> <span class="cmt">// instant reject</span>
-
-<span class="cmt">// KYC-expired check</span>
-<span class="kw">if</span> (clientId === <span class="str">"EXPIRED_KYC_CLIENT"</span>)
-  <span class="kw">return</span> <span class="str">RED</span>
-
-<span class="cmt">// KYC expiring soon</span>
-<span class="kw">if</span> (clientId.<span class="fn">startsWith</span>(<span class="str">"EXPIRING_"</span>))
-  <span class="kw">return</span> <span class="str">AMBER</span>
-
-<span class="kw">return</span> <span class="str">GREEN</span>
+      <ul>
+        <li>Client name appears on the sanctions list (OFAC, blocked entities) <span class="then red">REJECT</span> &mdash; <span class="highlight">instant, pipeline stops here</span></li>
+        <li>Client&rsquo;s KYC (identity verification) has expired <span class="then red">REJECT</span></li>
+        <li>KYC is valid but expiring soon <span class="then amber">FLAG</span> &mdash; renewal should be scheduled</li>
+        <li>Client is clear on all screens <span class="then green">PASS</span></li>
+      </ul>
     </div>
 
     <div class="section-label">
@@ -415,28 +395,15 @@ const AGENTS_HTML = `<!DOCTYPE html>
 
     <div class="section-label">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg>
-      Decision Logic
+      What It Checks
     </div>
     <div class="logic-block">
-<span class="cmt">// Rate table (hardcoded, prod: ExchangePort)</span>
-<span class="kw">const</span> rates = {
-  <span class="str">"CAD-USDC"</span>: <span class="num">0.73</span>,  <span class="str">"USD-USDC"</span>: <span class="num">1.00</span>,
-  <span class="str">"EUR-USDC"</span>: <span class="num">1.08</span>,  <span class="str">"GBP-USDC"</span>: <span class="num">1.27</span>,
-  <span class="cmt">// + reverse pairs</span>
-}
-
-<span class="kw">const</span> rate = rates[pair]
-<span class="kw">if</span> (!rate) <span class="kw">return</span> <span class="str">RED</span>
-
-<span class="kw">const</span> output = Math.<span class="fn">round</span>(amountCents * rate)
-
-<span class="cmt">// Spread calculation</span>
-<span class="kw">const</span> spread = amountCents &gt; <span class="num">5_000_000</span>
-  ? <span class="num">0.001</span>  <span class="cmt">// 0.1% for &gt; $50k</span>
-  : <span class="num">0.005</span>  <span class="cmt">// 0.5% for smaller</span>
-
-<span class="kw">if</span> (spread &gt; <span class="num">0.003</span>) <span class="kw">return</span> <span class="str">AMBER</span>
-<span class="kw">return</span> <span class="str">GREEN</span>
+      <ul>
+        <li>Currency pair not supported (e.g. JPY &rarr; USDC) <span class="then red">REJECT</span></li>
+        <li>Looks up the exchange rate and calculates the conversion output</li>
+        <li>Transactions <span class="highlight">under $50k</span> get a 0.5% spread <span class="then amber">FLAG</span> &mdash; standard rate, higher cost</li>
+        <li>Transactions <span class="highlight">over $50k</span> get a 0.1% spread <span class="then green">PASS</span> &mdash; preferred rate</li>
+      </ul>
     </div>
 
     <div class="section-label">
@@ -483,27 +450,22 @@ const AGENTS_HTML = `<!DOCTYPE html>
 
     <div class="section-label">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg>
-      Decision Logic
+      What It Checks
     </div>
     <div class="logic-block">
-<span class="kw">let</span> score = <span class="num">20</span> <span class="cmt">// base score</span>
-
-<span class="cmt">// Amount thresholds (not cumulative)</span>
-<span class="kw">if</span> (amount &gt; <span class="num">5_000_000</span>)      score += <span class="num">25</span>
-<span class="kw">else if</span> (amount &gt; <span class="num">1_000_000</span>) score += <span class="num">15</span>
-
-<span class="cmt">// First-time counterparty</span>
-<span class="kw">if</span> (clientName.<span class="fn">includes</span>(<span class="str">"NEW_"</span>)) score += <span class="num">20</span>
-
-<span class="cmt">// Higher-risk stablecoin</span>
-<span class="kw">if</span> (currencyTo === <span class="str">"USDT"</span>)       score += <span class="num">10</span>
-
-<span class="cmt">// Missing description</span>
-<span class="kw">if</span> (!description)              score += <span class="num">15</span>
-
-<span class="kw">if</span> (score &gt; <span class="num">75</span>)  <span class="kw">return</span> <span class="str">RED</span>
-<span class="kw">if</span> (score &gt;= <span class="num">50</span>) <span class="kw">return</span> <span class="str">AMBER</span>
-<span class="kw">return</span> <span class="str">GREEN</span>
+      <p style="margin-bottom:8px">Starts at a base score of <span class="highlight">20</span>. Adds points for each risk factor:</p>
+      <ul>
+        <li>Amount over $50,000 &rarr; <span class="highlight">+25 points</span></li>
+        <li>Amount over $10,000 (but under $50k) &rarr; <span class="highlight">+15 points</span></li>
+        <li>First-time counterparty (new client) &rarr; <span class="highlight">+20 points</span></li>
+        <li>Destination is USDT (higher risk stablecoin) &rarr; <span class="highlight">+10 points</span></li>
+        <li>No description provided &rarr; <span class="highlight">+15 points</span></li>
+      </ul>
+      <p style="margin-top:10px">
+        Final score below 50 <span class="then green">PASS</span> &nbsp;
+        50&ndash;75 <span class="then amber">FLAG</span> &nbsp;
+        above 75 <span class="then red">REJECT</span>
+      </p>
     </div>
 
     <div class="section-label">
@@ -550,22 +512,15 @@ const AGENTS_HTML = `<!DOCTYPE html>
 
     <div class="section-label">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg>
-      Decision Logic
+      What It Checks
     </div>
     <div class="logic-block">
-<span class="cmt">// Query D1 for recent duplicates</span>
-<span class="kw">SELECT</span> * <span class="kw">FROM</span> payment_requests
-<span class="kw">WHERE</span> client_id = <span class="str">?</span>
-  <span class="kw">AND</span> amount_cents = <span class="str">?</span>
-  <span class="kw">AND</span> created_at &gt; <span class="fn">datetime</span>(<span class="str">'now'</span>, <span class="str">'-24 hours'</span>)
-  <span class="kw">AND</span> status != <span class="str">'REJECTED'</span>
-  <span class="kw">AND</span> id != <span class="str">:currentId</span>
-
-<span class="kw">const</span> matches = results.length
-
-<span class="kw">if</span> (matches &gt;= <span class="num">2</span>) <span class="kw">return</span> <span class="str">RED</span>
-<span class="kw">if</span> (matches === <span class="num">1</span>) <span class="kw">return</span> <span class="str">AMBER</span>
-<span class="kw">return</span> <span class="str">GREEN</span>
+      <p style="margin-bottom:8px">Searches the database for recent requests from the <span class="highlight">same client</span> with the <span class="highlight">same amount</span> in the last 24 hours:</p>
+      <ul>
+        <li>No matches found <span class="then green">PASS</span></li>
+        <li>1 similar request found <span class="then amber">FLAG</span> &mdash; possible duplicate, needs human review</li>
+        <li>2 or more matches found <span class="then red">REJECT</span> &mdash; likely duplicate, blocked</li>
+      </ul>
     </div>
 
     <div class="section-label">
@@ -612,27 +567,16 @@ const AGENTS_HTML = `<!DOCTYPE html>
 
     <div class="section-label">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg>
-      Decision Logic
+      What It Checks
     </div>
     <div class="logic-block">
-<span class="cmt">// Collect all agent verdicts</span>
-<span class="kw">const</span> verdicts = [intake, compliance, fx, risk, recon]
-
-<span class="cmt">// Any RED &rarr; pipeline already short-circuited at that agent</span>
-<span class="kw">if</span> (verdicts.<span class="fn">some</span>(v =&gt; v === <span class="str">"RED"</span>))
-  status = <span class="str">"REJECTED"</span>
-
-<span class="cmt">// Any AMBER &rarr; escalate to human review</span>
-<span class="kw">else if</span> (verdicts.<span class="fn">some</span>(v =&gt; v === <span class="str">"AMBER"</span>))
-  status = <span class="str">"ESCALATED"</span>
-
-<span class="cmt">// All GREEN &rarr; auto-approve</span>
-<span class="kw">else</span>
-  status = <span class="str">"APPROVED"</span>
-
-<span class="cmt">// Persist every decision</span>
-<span class="fn">writeAgentDecisions</span>(db, requestId, verdicts)
-<span class="fn">updatePaymentStatus</span>(db, requestId, status)
+      <p style="margin-bottom:8px">Collects all five agent verdicts and makes one final call:</p>
+      <ul>
+        <li>Any agent returned <span class="then red">RED</span> &rarr; the payment is <span class="highlight">auto-rejected</span>. The pipeline already stopped at that agent.</li>
+        <li>Any agent returned <span class="then amber">AMBER</span> &rarr; the payment is <span class="highlight">escalated</span> to the dashboard for a human to review.</li>
+        <li>All agents returned <span class="then green">GREEN</span> &rarr; the payment is <span class="highlight">auto-approved</span>. No human needed.</li>
+      </ul>
+      <p style="margin-top:10px">Every verdict and the final decision are written to D1 for a complete audit trail.</p>
     </div>
 
     <div class="section-label">
