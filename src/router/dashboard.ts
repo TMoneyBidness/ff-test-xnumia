@@ -550,9 +550,9 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
 
 <script>
 (function() {
-  var AGENTS = ['intake', 'compliance', 'fx', 'risk', 'recon'];
-  var AGENT_LABELS = { intake: 'Intake', compliance: 'Compliance', fx: 'FX', risk: 'Risk', recon: 'Recon' };
-  var AGENT_ICONS = { intake: 'IN', compliance: 'CO', fx: 'FX', risk: 'RK', recon: 'RC' };
+  var AGENTS = ['validate', 'quote', 'screen', 'execute', 'reconcile'];
+  var AGENT_LABELS = { validate: 'Validate', quote: 'Quote', screen: 'Screen', execute: 'Execute', reconcile: 'Reconcile' };
+  var AGENT_ICONS = { validate: 'VA', quote: 'QT', screen: 'SC', execute: 'EX', reconcile: 'RC' };
 
   var decisionsCache = {};
   var expandedAgents = {};

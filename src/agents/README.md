@@ -1,33 +1,42 @@
-# Agent Workloads
+# Payment Pipeline Agents
 
-Five operational workloads owned end-to-end by autonomous agents. Humans review exceptions only.
+Five agents process every payment request in sequence, aligned with how real payments infrastructure works.
 
-## Priority Order (Phase 1 Build)
+## Pipeline Order
 
-### 1. Settlement Agent
-- **Scope**: Confirm finality across rails, close the loop between bank and exchange ledgers, mark transactions complete in accounting
-- **Ports used**: BankPort, ExchangePort, AccountingPort
-- **Priority**: HIGHEST — this is the core transaction lifecycle
+### 1. Validate Agent (pre-execution)
+- **What it does**: Checks that the request is well-formed and the client is eligible to transact
+- **Checks**: Required fields, valid currencies, KYC status
+- **Blocks on**: Invalid data, expired KYC
 
-### 2. Reconciliation Agent
-- **Scope**: Match ledger entries across bank, exchange, PSP (Phase 1), and accounting software. Flag mismatches, propose and execute resolutions
-- **Ports used**: BankPort, ExchangePort, PSPPort (Phase 1), AccountingPort
-- **Priority**: HIGH — reconciliation failures are the #1 operational cost in payments
+### 2. Quote Agent (pre-execution)
+- **What it does**: Looks up the exchange rate and calculates the conversion output
+- **Checks**: Currency pair is supported, calculates spread
+- **Blocks on**: Unsupported currency pair
+- **Note**: Does NOT judge risk — it just does math
 
-### 3. Fraud Detection Agent
-- **Scope**: Flag anomalous transactions in-flight, hold suspect movements, escalate to human review
-- **Ports used**: BankPort, ExchangePort (read-only for pattern analysis)
-- **Priority**: MEDIUM — must exist before production launch but can start simple
+### 3. Screen Agent (pre-execution)
+- **What it does**: Transaction monitoring — sanctions, velocity, amount patterns
+- **Checks**: OFAC/sanctions lists, transaction velocity (last hour), large-value thresholds
+- **Blocks on**: Sanctions hit (instant reject), compound risk signals
+- **Database**: D1 `payment_requests` for velocity queries
 
-### 4. AML Compliance Agent
-- **Scope**: Sanctions screening, transaction monitoring, suspicious activity pattern detection, regulatory reporting prep
-- **Ports used**: BankPort, ExchangePort (read-only), external sanctions list APIs
-- **Priority**: MEDIUM — regulatory requirement, design against FINTRAC/FinCEN guidance
+### 4. Execute Agent (post-authorization)
+- **What it does**: Calls bank and exchange adapters to move funds, writes ledger entries
+- **Calls**: BankPort.getBalance(), BankPort.initiateTransfer(), ExchangePort.convertFiatToStable()
+- **Writes**: D1 `ledger_entries` — one debit (fiat) + one credit (stablecoin)
+- **Blocks on**: Insufficient funds
 
-### 5. Payments Operations Agent
-- **Scope**: Exceptions, retries, customer-service-tier resolution for downstream clients
-- **Ports used**: All ports
-- **Priority**: LOWER — handles the long tail of edge cases
+### 5. Reconcile Agent (post-execution)
+- **What it does**: Matches ledger entries and checks for duplicate payments
+- **Checks**: Debit and credit amounts balance, duplicate detection (same client + amount in 24h)
+- **Database**: D1 `ledger_entries`, D1 `payment_requests`
+- **Blocks on**: 2+ duplicate payments detected
 
 ## Key Rule
-Every agent action MUST write to the `agent_decisions` table with: agent_type, action, reasoning, outcome. No silent decisions.
+Every agent action writes to `agent_decisions` in D1 with: agent_type, verdict, reasoning, detail. No silent decisions.
+
+## Pipeline Behavior
+- All GREEN → auto-approved
+- Any AMBER → escalated to human review (dashboard)
+- Any RED → auto-rejected, pipeline stops at that agent

@@ -699,8 +699,8 @@ const LANDING_HTML = `<!DOCTYPE html>
       <div class="agent-bar">
         <a href="/agents" class="agent-bar-item">
           <div class="agent-icon">&#9654;</div>
-          <div class="agent-name">Intake</div>
-          <div class="verdict-counts" id="vc-intake">
+          <div class="agent-name">Validate</div>
+          <div class="verdict-counts" id="vc-validate">
             <span class="verdict-pip"><span class="pip g"></span><span class="count">--</span></span>
             <span class="verdict-pip"><span class="pip a"></span><span class="count">--</span></span>
             <span class="verdict-pip"><span class="pip r"></span><span class="count">--</span></span>
@@ -708,8 +708,8 @@ const LANDING_HTML = `<!DOCTYPE html>
         </a>
         <a href="/agents" class="agent-bar-item">
           <div class="agent-icon">&#9670;</div>
-          <div class="agent-name">Compliance</div>
-          <div class="verdict-counts" id="vc-compliance">
+          <div class="agent-name">Quote</div>
+          <div class="verdict-counts" id="vc-quote">
             <span class="verdict-pip"><span class="pip g"></span><span class="count">--</span></span>
             <span class="verdict-pip"><span class="pip a"></span><span class="count">--</span></span>
             <span class="verdict-pip"><span class="pip r"></span><span class="count">--</span></span>
@@ -717,8 +717,8 @@ const LANDING_HTML = `<!DOCTYPE html>
         </a>
         <a href="/agents" class="agent-bar-item">
           <div class="agent-icon">&#9679;</div>
-          <div class="agent-name">FX</div>
-          <div class="verdict-counts" id="vc-fx">
+          <div class="agent-name">Screen</div>
+          <div class="verdict-counts" id="vc-screen">
             <span class="verdict-pip"><span class="pip g"></span><span class="count">--</span></span>
             <span class="verdict-pip"><span class="pip a"></span><span class="count">--</span></span>
             <span class="verdict-pip"><span class="pip r"></span><span class="count">--</span></span>
@@ -726,8 +726,8 @@ const LANDING_HTML = `<!DOCTYPE html>
         </a>
         <a href="/agents" class="agent-bar-item">
           <div class="agent-icon">&#9650;</div>
-          <div class="agent-name">Risk</div>
-          <div class="verdict-counts" id="vc-risk">
+          <div class="agent-name">Execute</div>
+          <div class="verdict-counts" id="vc-execute">
             <span class="verdict-pip"><span class="pip g"></span><span class="count">--</span></span>
             <span class="verdict-pip"><span class="pip a"></span><span class="count">--</span></span>
             <span class="verdict-pip"><span class="pip r"></span><span class="count">--</span></span>
@@ -735,8 +735,8 @@ const LANDING_HTML = `<!DOCTYPE html>
         </a>
         <a href="/agents" class="agent-bar-item">
           <div class="agent-icon">&#9632;</div>
-          <div class="agent-name">Recon</div>
-          <div class="verdict-counts" id="vc-recon">
+          <div class="agent-name">Reconcile</div>
+          <div class="verdict-counts" id="vc-reconcile">
             <span class="verdict-pip"><span class="pip g"></span><span class="count">--</span></span>
             <span class="verdict-pip"><span class="pip a"></span><span class="count">--</span></span>
             <span class="verdict-pip"><span class="pip r"></span><span class="count">--</span></span>
@@ -989,7 +989,7 @@ const LANDING_HTML = `<!DOCTYPE html>
 
       <div class="card principle-card">
         <h3>Short-Circuit on Red</h3>
-        <p>When any agent returns RED, the pipeline stops immediately. No wasted compute on a dead transaction. Compliance catches a sanctioned entity? Done. No FX, no Risk, no Recon.</p>
+        <p>When any agent returns RED, the pipeline stops immediately. No wasted compute on a dead transaction. Screen catches a sanctioned entity? Done. No Execute, no Reconcile.</p>
       </div>
 
     </div>
@@ -1037,7 +1037,7 @@ function updateTableCounts(tables) {
 
     // Agent verdict counts
     if (data.agentVerdicts) {
-      var agents = ['intake', 'compliance', 'fx', 'risk', 'recon'];
+      var agents = ['validate', 'quote', 'screen', 'execute', 'reconcile'];
       for (var i = 0; i < agents.length; i++) {
         var agent = agents[i];
         var el = document.getElementById('vc-' + agent);
@@ -1119,7 +1119,7 @@ function submitPayment() {
 
     // Build agent dots safely with DOM methods
     while (dotsEl.firstChild) { dotsEl.removeChild(dotsEl.firstChild); }
-    var agentNames = ['Intake', 'Compliance', 'FX', 'Risk', 'Recon'];
+    var agentNames = ['Validate', 'Quote', 'Screen', 'Execute', 'Reconcile'];
     var decisions = data.agentDecisions || data.decisions || [];
     for (var i = 0; i < agentNames.length; i++) {
       var d = decisions[i];

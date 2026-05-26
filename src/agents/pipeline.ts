@@ -1,14 +1,22 @@
 import type { Env } from '../lib/env'
 import type { PaymentRequest, PipelineResult, PipelineAgent, AgentResult } from './types'
-import { IntakeAgent } from './intake'
-import { ComplianceAgent } from './compliance'
-import { FxAgent } from './fx'
-import { RiskAgent } from './risk'
-import { ReconAgent } from './recon'
+import { ValidateAgent } from './validate'
+import { QuoteAgent } from './quote'
+import { ScreenAgent } from './screen'
+import { ExecuteAgent } from './execute'
+import { ReconcileAgent } from './reconcile'
 
 /**
- * Runs a payment request through all 5 pipeline agents in sequence,
- * collects verdicts, writes decisions to D1, and returns the final result.
+ * Runs a payment request through the 5-step payments pipeline:
+ *   1. Validate  — fields, currencies, client eligibility
+ *   2. Quote     — FX rate lookup and conversion calculation
+ *   3. Screen    — sanctions, velocity, transaction monitoring
+ *   4. Execute   — call adapters to move funds, write ledger entries
+ *   5. Reconcile — match ledger, check for duplicates
+ *
+ * Steps 1-3 are pre-execution (gate checks).
+ * Steps 4-5 are post-authorization (fund movement + bookkeeping).
+ * Pipeline short-circuits on any RED verdict.
  */
 export async function runPipeline(
   request: PaymentRequest,
@@ -16,13 +24,12 @@ export async function runPipeline(
 ): Promise<PipelineResult> {
   const pipelineStart = Date.now()
 
-  // Instantiate agents in pipeline order
   const agents: PipelineAgent[] = [
-    new IntakeAgent(),
-    new ComplianceAgent(),
-    new FxAgent(),
-    new RiskAgent(),
-    new ReconAgent(env),
+    new ValidateAgent(),
+    new QuoteAgent(),
+    new ScreenAgent(env),
+    new ExecuteAgent(env),
+    new ReconcileAgent(env),
   ]
 
   const agentResults: AgentResult[] = []
@@ -65,7 +72,7 @@ export async function runPipeline(
       escalationReasons.push(`${agent.name}: ${result.reasoning}`)
     }
 
-    // Short-circuit on red — no point running remaining agents
+    // Short-circuit on red — no point running remaining steps
     if (hasRed) break
   }
 

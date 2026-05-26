@@ -187,7 +187,7 @@ mcp.get('/mcp/ask-why/:requestId/:agentType', async (c) => {
   const requestId = c.req.param('requestId')
   const agentType = c.req.param('agentType') as AgentType
 
-  const validTypes: AgentType[] = ['intake', 'compliance', 'fx', 'risk', 'recon']
+  const validTypes: AgentType[] = ['validate', 'quote', 'screen', 'execute', 'reconcile']
   if (!validTypes.includes(agentType)) {
     return c.json({ error: `Invalid agent type '${agentType}'. Must be one of: ${validTypes.join(', ')}` }, 400)
   }

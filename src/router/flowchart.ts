@@ -209,24 +209,24 @@ const FLOWCHART_HTML = `<!DOCTYPE html>
 
 <div class="info-grid">
   <div class="info-card">
-    <h3><span class="agent-icon" style="background:rgba(99,102,241,0.2)">&#128203;</span> Intake Agent</h3>
-    <p>Validates all fields: client ID, name, amount &gt; 0, valid currencies (<code>CAD</code> <code>USD</code> <code>EUR</code> <code>GBP</code> &rarr; <code>USDC</code> <code>USDT</code>), and ensures from &ne; to. Flags missing descriptions as amber.</p>
+    <h3><span class="agent-icon" style="background:rgba(99,102,241,0.2)">&#128203;</span> Validate</h3>
+    <p>Checks that the request is well-formed and the client is eligible. Valid currencies, KYC status, required fields. First gate before anything runs.</p>
   </div>
   <div class="info-card">
-    <h3><span class="agent-icon" style="background:rgba(239,68,68,0.2)">&#128737;</span> Compliance Agent</h3>
-    <p>Screens client name against sanctions list (OFAC, blocked entities). Checks KYC status. <strong>Red = instant reject, pipeline short-circuits.</strong> No further agents run.</p>
+    <h3><span class="agent-icon" style="background:rgba(245,158,11,0.2)">&#128177;</span> Quote</h3>
+    <p>Looks up the exchange rate, calculates the conversion output and spread. Does not judge risk &mdash; just math. Always green if the currency pair is supported.</p>
   </div>
   <div class="info-card">
-    <h3><span class="agent-icon" style="background:rgba(245,158,11,0.2)">&#128177;</span> FX Agent</h3>
-    <p>Looks up exchange rate for the currency pair, calculates conversion output, and evaluates spread. Transactions &lt; $50k get 0.5% spread (amber). Transactions &ge; $50k get 0.1% (green).</p>
+    <h3><span class="agent-icon" style="background:rgba(239,68,68,0.2)">&#128737;</span> Screen</h3>
+    <p>Transaction monitoring: sanctions screening, velocity checks (payments per hour), large-value thresholds. <strong>Sanctions hit = instant reject.</strong> Multiple flags compound into a block.</p>
   </div>
   <div class="info-card">
-    <h3><span class="agent-icon" style="background:rgba(251,146,60,0.2)">&#9888;</span> Risk Agent</h3>
-    <p>Scores 0&ndash;100 from additive factors: amount thresholds (+15/+25), first-time counterparty (+20), high-risk stablecoin (+10), missing description (+15). Score &gt;75 = red, 50&ndash;75 = amber.</p>
+    <h3><span class="agent-icon" style="background:rgba(99,102,241,0.2)">&#9889;</span> Execute</h3>
+    <p>Calls bank and exchange adapters to move funds. Writes debit and credit ledger entries to D1. Checks sufficient funds before initiating transfer.</p>
   </div>
   <div class="info-card">
-    <h3><span class="agent-icon" style="background:rgba(34,197,94,0.2)">&#128202;</span> Recon Agent</h3>
-    <p>Queries D1 for matching requests: same client + same amount within 24 hours. Flags possible duplicates (amber) or confirmed duplicates (red). Prevents double-processing.</p>
+    <h3><span class="agent-icon" style="background:rgba(34,197,94,0.2)">&#128202;</span> Reconcile</h3>
+    <p>Matches ledger entries (debit = credit?), checks for duplicate payments in the last 24 hours. Catches double-payments before they settle.</p>
   </div>
   <div class="info-card">
     <h3><span class="agent-icon" style="background:rgba(99,102,241,0.2)">&#127919;</span> Orchestrator</h3>
@@ -269,11 +269,11 @@ const C = {
 
 // ── Node Layout ─────────────────────────────
 const AGENTS = [
-  { id: 'intake',     label: 'Intake',     icon: '\\u{1F4CB}', desc: 'Validate' },
-  { id: 'compliance', label: 'Compliance', icon: '\\u{1F6E1}', desc: 'Sanctions & KYC' },
-  { id: 'fx',         label: 'FX',         icon: '\\u{1F4B1}', desc: 'Rate & Convert' },
-  { id: 'risk',       label: 'Risk',       icon: '\\u26A0',    desc: 'Score 0-100' },
-  { id: 'recon',      label: 'Recon',      icon: '\\u{1F4CA}', desc: 'Dedup Check' },
+  { id: 'validate',   label: 'Validate',   icon: '\\u{1F4CB}', desc: 'Fields & KYC' },
+  { id: 'quote',      label: 'Quote',      icon: '\\u{1F4B1}', desc: 'FX Rate' },
+  { id: 'screen',     label: 'Screen',     icon: '\\u{1F6E1}', desc: 'Sanctions & Velocity' },
+  { id: 'execute',    label: 'Execute',    icon: '\\u26A1',    desc: 'Move Funds' },
+  { id: 'reconcile',  label: 'Reconcile',  icon: '\\u{1F4CA}', desc: 'Match Ledger' },
 ];
 
 function getLayout() {
@@ -312,22 +312,22 @@ let hoveredNode = null;
 const SCENARIOS = {
   clean: {
     label: '$5,000 CAD \\u2192 USDC — Acme Corp',
-    verdicts: { intake: 'green', compliance: 'green', fx: 'green', risk: 'green', recon: 'green' },
+    verdicts: { validate: 'green', quote: 'green', screen: 'green', execute: 'green', reconcile: 'green' },
     outcome: 'approve',
   },
   risky: {
-    label: '$15,000 CAD \\u2192 USDC — NEW_Startup Inc (no description)',
-    verdicts: { intake: 'amber', compliance: 'green', fx: 'amber', risk: 'amber', recon: 'green' },
+    label: '$150,000 CAD \\u2192 USDC — High-value transaction',
+    verdicts: { validate: 'green', quote: 'green', screen: 'amber' },
     outcome: 'escalate',
   },
   sanctioned: {
     label: '$10,000 USD \\u2192 USDC — SANCTIONED_CORP',
-    verdicts: { intake: 'green', compliance: 'red' },
+    verdicts: { validate: 'green', quote: 'green', screen: 'red' },
     outcome: 'reject',
   },
   duplicate: {
     label: '$5,000 CAD \\u2192 USDC — Acme Corp (duplicate)',
-    verdicts: { intake: 'green', compliance: 'green', fx: 'green', risk: 'green', recon: 'amber' },
+    verdicts: { validate: 'green', quote: 'green', screen: 'green', execute: 'green', reconcile: 'amber' },
     outcome: 'escalate',
   },
 };

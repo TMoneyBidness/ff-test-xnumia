@@ -260,7 +260,7 @@ const API_HTML = `<!DOCTYPE html>
         <thead><tr><th>Name</th><th>Type</th><th></th><th>Description</th></tr></thead>
         <tbody>
           <tr><td>requestId</td><td class="type">string</td><td class="req">required</td><td>UUID of the payment request</td></tr>
-          <tr><td>agentType</td><td class="type">string</td><td class="req">required</td><td>One of: intake, compliance, fx, risk, recon</td></tr>
+          <tr><td>agentType</td><td class="type">string</td><td class="req">required</td><td>One of: validate, quote, screen, execute, reconcile</td></tr>
         </tbody>
       </table>
     </div>

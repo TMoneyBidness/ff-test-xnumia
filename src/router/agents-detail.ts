@@ -268,19 +268,19 @@ const AGENTS_HTML = `<!DOCTYPE html>
 
 <div class="hero">
   <h1>Agent Fleet &mdash; Technical Reference</h1>
-  <p>Five specialist agents evaluate every payment request. Each operates autonomously with scoped access to specific systems.</p>
+  <p>Five specialist agents form the payments pipeline. Each evaluates a different dimension of every payment request, from field validation through execution and reconciliation.</p>
 </div>
 
 <div class="grid">
 
-  <!-- ── 1. Intake Agent ─────────────────────── -->
+  <!-- ── 1. Validate Agent ─────────────────────── -->
   <div class="card">
     <div class="pipeline-pos">1st in pipeline</div>
     <div class="card-header">
-      <div class="card-icon">&#x1F4E5;</div>
-      <h2>Intake Agent</h2>
+      <div class="card-icon">&#x2705;</div>
+      <h2>Validate Agent</h2>
     </div>
-    <div class="card-role">First-line validation and normalization</div>
+    <div class="card-role">Field validation and client eligibility</div>
 
     <div class="section-label">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg>
@@ -289,9 +289,11 @@ const AGENTS_HTML = `<!DOCTYPE html>
     <div class="logic-block">
       <ul>
         <li>Missing client ID, name, or zero/negative amount <span class="then red">REJECT</span></li>
-        <li>Currency not in the accepted list (CAD, USD, EUR, GBP, USDC, USDT) <span class="then red">REJECT</span></li>
+        <li>Currency not in accepted list (CAD, USD, EUR, GBP, USDC, USDT) <span class="then red">REJECT</span></li>
         <li>From and To currencies are the same <span class="then red">REJECT</span></li>
-        <li>No description provided <span class="then amber">FLAG</span> &mdash; optional but recommended for audit trail</li>
+        <li>Client&rsquo;s KYC has expired <span class="then red">REJECT</span></li>
+        <li>KYC is valid but expiring soon <span class="then amber">FLAG</span></li>
+        <li>No description provided <span class="then amber">FLAG</span> &mdash; recommended for audit trail</li>
         <li>Everything checks out <span class="then green">PASS</span></li>
       </ul>
     </div>
@@ -303,7 +305,7 @@ const AGENTS_HTML = `<!DOCTYPE html>
     <div class="systems">
       <span class="sys-badge none">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M18 6L6 18"/></svg>
-        None &mdash; pure validation
+        None &mdash; pure validation, no external calls
       </span>
     </div>
 
@@ -317,81 +319,22 @@ const AGENTS_HTML = `<!DOCTYPE html>
       <span class="verdict red">&#x25CF; RED</span>
     </div>
     <div class="verdict-desc">
-      <strong style="color:#4ade80">GREEN</strong> = all fields valid &nbsp;|&nbsp;
-      <strong style="color:#fbbf24">AMBER</strong> = missing description &nbsp;|&nbsp;
-      <strong style="color:#f87171">RED</strong> = invalid/missing required fields or unknown currency
+      <strong style="color:#4ade80">GREEN</strong> = eligible &nbsp;|&nbsp;
+      <strong style="color:#fbbf24">AMBER</strong> = minor warnings &nbsp;|&nbsp;
+      <strong style="color:#f87171">RED</strong> = invalid or KYC expired
     </div>
     <div class="divider"></div>
     <div class="short-circuit">&#x26A0; Short-circuits pipeline on RED</div>
   </div>
 
-  <!-- ── 2. Compliance Agent ─────────────────── -->
+  <!-- ── 2. Quote Agent ────────────────────────── -->
   <div class="card">
     <div class="pipeline-pos">2nd in pipeline</div>
     <div class="card-header">
-      <div class="card-icon">&#x1F6E1;</div>
-      <h2>Compliance Agent</h2>
-    </div>
-    <div class="card-role">Sanctions screening and KYC verification</div>
-
-    <div class="section-label">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg>
-      What It Checks
-    </div>
-    <div class="logic-block">
-      <ul>
-        <li>Client name appears on the sanctions list (OFAC, blocked entities) <span class="then red">REJECT</span> &mdash; <span class="highlight">instant, pipeline stops here</span></li>
-        <li>Client&rsquo;s KYC (identity verification) has expired <span class="then red">REJECT</span></li>
-        <li>KYC is valid but expiring soon <span class="then amber">FLAG</span> &mdash; renewal should be scheduled</li>
-        <li>Client is clear on all screens <span class="then green">PASS</span></li>
-      </ul>
-    </div>
-
-    <div class="section-label">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-      Systems
-    </div>
-    <div class="systems">
-      <span class="sys-badge api">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.66 0 3-4.03 3-9s-1.34-9-3-9m0 18c-1.66 0-3-4.03-3-9s1.34-9 3-9"/></svg>
-        OFAC SDN / FINTRAC (prod)
-      </span>
-      <span class="sys-badge api">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.66 0 3-4.03 3-9s-1.34-9-3-9m0 18c-1.66 0-3-4.03-3-9s1.34-9 3-9"/></svg>
-        KYC provider (prod)
-      </span>
-      <span class="sys-badge none">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M18 6L6 18"/></svg>
-        Currently: hardcoded mock lists
-      </span>
-    </div>
-
-    <div class="section-label">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
-      Verdicts
-    </div>
-    <div class="verdicts">
-      <span class="verdict green">&#x25CF; GREEN</span>
-      <span class="verdict amber">&#x25CF; AMBER</span>
-      <span class="verdict red">&#x25CF; RED</span>
-    </div>
-    <div class="verdict-desc">
-      <strong style="color:#4ade80">GREEN</strong> = cleared all screens &nbsp;|&nbsp;
-      <strong style="color:#fbbf24">AMBER</strong> = KYC expiring soon &nbsp;|&nbsp;
-      <strong style="color:#f87171">RED</strong> = sanctions match or KYC expired
-    </div>
-    <div class="divider"></div>
-    <div class="short-circuit">&#x26A0; Short-circuits pipeline on RED &mdash; instant reject</div>
-  </div>
-
-  <!-- ── 3. FX Agent ─────────────────────────── -->
-  <div class="card">
-    <div class="pipeline-pos">3rd in pipeline</div>
-    <div class="card-header">
       <div class="card-icon">&#x1F4B1;</div>
-      <h2>FX Agent</h2>
+      <h2>Quote Agent</h2>
     </div>
-    <div class="card-role">Exchange rate lookup and conversion calculation</div>
+    <div class="card-role">FX rate lookup and conversion calculation</div>
 
     <div class="section-label">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg>
@@ -399,11 +342,13 @@ const AGENTS_HTML = `<!DOCTYPE html>
     </div>
     <div class="logic-block">
       <ul>
-        <li>Currency pair not supported (e.g. JPY &rarr; USDC) <span class="then red">REJECT</span></li>
-        <li>Looks up the exchange rate and calculates the conversion output</li>
-        <li>Transactions <span class="highlight">under $50k</span> get a 0.5% spread <span class="then amber">FLAG</span> &mdash; standard rate, higher cost</li>
-        <li>Transactions <span class="highlight">over $50k</span> get a 0.1% spread <span class="then green">PASS</span> &mdash; preferred rate</li>
+        <li>Looks up exchange rate for the currency pair</li>
+        <li>Calculates output amount (input &times; rate)</li>
+        <li>Calculates spread (0.1% for large, 0.5% for small transactions)</li>
+        <li>Currency pair not supported <span class="then red">REJECT</span></li>
+        <li>Rate found and conversion calculated <span class="then green">PASS</span></li>
       </ul>
+      <p style="margin-top:10px;font-size:12px;color:#94a3b8;">This agent quotes &mdash; it does not judge risk. Spread is a business parameter, not a risk flag.</p>
     </div>
 
     <div class="section-label">
@@ -413,7 +358,7 @@ const AGENTS_HTML = `<!DOCTYPE html>
     <div class="systems">
       <span class="sys-badge api">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.66 0 3-4.03 3-9s-1.34-9-3-9m0 18c-1.66 0-3-4.03-3-9s1.34-9 3-9"/></svg>
-        ExchangePort (prod)
+        ExchangePort (prod: live rates)
       </span>
       <span class="sys-badge none">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M18 6L6 18"/></svg>
@@ -427,99 +372,37 @@ const AGENTS_HTML = `<!DOCTYPE html>
     </div>
     <div class="verdicts">
       <span class="verdict green">&#x25CF; GREEN</span>
-      <span class="verdict amber">&#x25CF; AMBER</span>
       <span class="verdict red">&#x25CF; RED</span>
     </div>
     <div class="verdict-desc">
-      <strong style="color:#4ade80">GREEN</strong> = rate found, preferred spread (&le; 0.3%) &nbsp;|&nbsp;
-      <strong style="color:#fbbf24">AMBER</strong> = rate found, standard spread (&gt; 0.3%) &nbsp;|&nbsp;
-      <strong style="color:#f87171">RED</strong> = currency pair not supported
+      <strong style="color:#4ade80">GREEN</strong> = quoted successfully &nbsp;|&nbsp;
+      <strong style="color:#f87171">RED</strong> = unsupported pair.
+      <strong style="color:#fbbf24">Never AMBER</strong> &mdash; quoting is binary
     </div>
     <div class="divider"></div>
-    <div class="short-circuit no">&#x2714; Does not short-circuit pipeline</div>
+    <div class="short-circuit">&#x26A0; Short-circuits pipeline on RED</div>
   </div>
 
-  <!-- ── 4. Risk Agent ───────────────────────── -->
+  <!-- ── 3. Screen Agent ───────────────────────── -->
   <div class="card">
-    <div class="pipeline-pos">4th in pipeline</div>
+    <div class="pipeline-pos">3rd in pipeline</div>
     <div class="card-header">
-      <div class="card-icon">&#x1F6A8;</div>
-      <h2>Risk Agent</h2>
+      <div class="card-icon">&#x1F6E1;</div>
+      <h2>Screen Agent</h2>
     </div>
-    <div class="card-role">Transaction risk scoring (0&ndash;100 scale)</div>
+    <div class="card-role">Transaction monitoring &mdash; the real compliance and risk gate</div>
 
     <div class="section-label">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg>
       What It Checks
     </div>
     <div class="logic-block">
-      <p style="margin-bottom:8px">Starts at a base score of <span class="highlight">20</span>. Adds points for each risk factor:</p>
       <ul>
-        <li>Amount over $50,000 &rarr; <span class="highlight">+25 points</span></li>
-        <li>Amount over $10,000 (but under $50k) &rarr; <span class="highlight">+15 points</span></li>
-        <li>First-time counterparty (new client) &rarr; <span class="highlight">+20 points</span></li>
-        <li>Destination is USDT (higher risk stablecoin) &rarr; <span class="highlight">+10 points</span></li>
-        <li>No description provided &rarr; <span class="highlight">+15 points</span></li>
-      </ul>
-      <p style="margin-top:10px">
-        Final score below 50 <span class="then green">PASS</span> &nbsp;
-        50&ndash;75 <span class="then amber">FLAG</span> &nbsp;
-        above 75 <span class="then red">REJECT</span>
-      </p>
-    </div>
-
-    <div class="section-label">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-      Systems
-    </div>
-    <div class="systems">
-      <span class="sys-badge api">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.66 0 3-4.03 3-9s-1.34-9-3-9m0 18c-1.66 0-3-4.03-3-9s1.34-9 3-9"/></svg>
-        Velocity checks via D1 (prod)
-      </span>
-      <span class="sys-badge none">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M18 6L6 18"/></svg>
-        Currently: rule-based scoring
-      </span>
-    </div>
-
-    <div class="section-label">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
-      Verdicts
-    </div>
-    <div class="verdicts">
-      <span class="verdict green">&#x25CF; GREEN</span>
-      <span class="verdict amber">&#x25CF; AMBER</span>
-      <span class="verdict red">&#x25CF; RED</span>
-    </div>
-    <div class="verdict-desc">
-      <strong style="color:#4ade80">GREEN</strong> = score &lt; 50 &nbsp;|&nbsp;
-      <strong style="color:#fbbf24">AMBER</strong> = score 50&ndash;75 &nbsp;|&nbsp;
-      <strong style="color:#f87171">RED</strong> = score &gt; 75
-    </div>
-    <div class="divider"></div>
-    <div class="short-circuit no">&#x2714; Does not short-circuit pipeline</div>
-  </div>
-
-  <!-- ── 5. Recon Agent ──────────────────────── -->
-  <div class="card">
-    <div class="pipeline-pos">5th in pipeline</div>
-    <div class="card-header">
-      <div class="card-icon">&#x1F50D;</div>
-      <h2>Recon Agent</h2>
-    </div>
-    <div class="card-role">Duplicate detection and reconciliation</div>
-
-    <div class="section-label">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg>
-      What It Checks
-    </div>
-    <div class="logic-block">
-      <p style="margin-bottom:8px">Searches the database for recent requests from the <span class="highlight">same client</span> with the <span class="highlight">same amount</span> in the last 24 hours:</p>
-      <ul>
-        <li>No matches found <span class="then green">PASS</span></li>
-        <li>1 similar request found <span class="then amber">FLAG</span> &mdash; possible duplicate, needs human review</li>
-        <li>2 or more matches found <span class="then red">REJECT</span> &mdash; likely duplicate, blocked</li>
+        <li>Client name appears on sanctions list (OFAC, blocked entities) <span class="then red">REJECT</span> &mdash; <span class="highlight">pipeline stops here</span></li>
+        <li>Transaction velocity: more than 5 payments from this client in the last hour <span class="then amber">FLAG</span></li>
+        <li>Transaction amount over $100,000 <span class="then amber">FLAG</span> &mdash; requires enhanced monitoring</li>
+        <li>Multiple warning signals compound: two or more flags <span class="then red">REJECT</span></li>
+        <li>All screens clear <span class="then green">PASS</span></li>
       </ul>
     </div>
 
@@ -530,11 +413,11 @@ const AGENTS_HTML = `<!DOCTYPE html>
     <div class="systems">
       <span class="sys-badge db">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4.03 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/></svg>
-        D1 payment_requests
+        D1 payment_requests (velocity queries)
       </span>
       <span class="sys-badge api">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.66 0 3-4.03 3-9s-1.34-9-3-9m0 18c-1.66 0-3-4.03-3-9s1.34-9 3-9"/></svg>
-        AccountingPort (prod)
+        Prod: OFAC SDN API, FINTRAC feeds, KYC provider
       </span>
     </div>
 
@@ -548,12 +431,130 @@ const AGENTS_HTML = `<!DOCTYPE html>
       <span class="verdict red">&#x25CF; RED</span>
     </div>
     <div class="verdict-desc">
-      <strong style="color:#4ade80">GREEN</strong> = no duplicates &nbsp;|&nbsp;
-      <strong style="color:#fbbf24">AMBER</strong> = 1 possible duplicate &nbsp;|&nbsp;
-      <strong style="color:#f87171">RED</strong> = 2+ matches (likely duplicate)
+      <strong style="color:#4ade80">GREEN</strong> = clear &nbsp;|&nbsp;
+      <strong style="color:#fbbf24">AMBER</strong> = single warning &nbsp;|&nbsp;
+      <strong style="color:#f87171">RED</strong> = sanctions hit or compound risk
     </div>
     <div class="divider"></div>
-    <div class="short-circuit no">&#x2714; Does not short-circuit pipeline</div>
+    <div class="short-circuit">&#x26A0; Short-circuits pipeline on RED</div>
+  </div>
+
+  <!-- ── 4. Execute Agent ──────────────────────── -->
+  <div class="card">
+    <div class="pipeline-pos">4th in pipeline</div>
+    <div class="card-header">
+      <div class="card-icon">&#x26A1;</div>
+      <h2>Execute Agent</h2>
+    </div>
+    <div class="card-role">Calls adapters to move funds, writes ledger entries</div>
+
+    <div class="section-label">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg>
+      What It Checks
+    </div>
+    <div class="logic-block">
+      <ul>
+        <li>Verifies sufficient funds via bank adapter</li>
+        <li>Initiates fiat transfer via bank</li>
+        <li>Converts fiat to stablecoin via exchange adapter</li>
+        <li>Writes two ledger entries to D1: one debit (fiat rail), one credit (stablecoin rail)</li>
+        <li>Insufficient funds (simulated for amounts &gt; $500k) <span class="then red">REJECT</span></li>
+        <li>Transfer initiated but settlement pending <span class="then amber">FLAG</span></li>
+        <li>Funds moved and ledger entries written <span class="then green">PASS</span></li>
+      </ul>
+    </div>
+
+    <div class="section-label">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      Systems
+    </div>
+    <div class="systems">
+      <span class="sys-badge api">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.66 0 3-4.03 3-9s-1.34-9-3-9m0 18c-1.66 0-3-4.03-3-9s1.34-9 3-9"/></svg>
+        BankPort (MockBankAdapter)
+      </span>
+      <span class="sys-badge api">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.66 0 3-4.03 3-9s-1.34-9-3-9m0 18c-1.66 0-3-4.03-3-9s1.34-9 3-9"/></svg>
+        ExchangePort (MockExchangeAdapter)
+      </span>
+      <span class="sys-badge db">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4.03 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/></svg>
+        D1 ledger_entries
+      </span>
+    </div>
+
+    <div class="section-label">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
+      Verdicts
+    </div>
+    <div class="verdicts">
+      <span class="verdict green">&#x25CF; GREEN</span>
+      <span class="verdict amber">&#x25CF; AMBER</span>
+      <span class="verdict red">&#x25CF; RED</span>
+    </div>
+    <div class="verdict-desc">
+      <strong style="color:#4ade80">GREEN</strong> = executed &nbsp;|&nbsp;
+      <strong style="color:#fbbf24">AMBER</strong> = pending settlement &nbsp;|&nbsp;
+      <strong style="color:#f87171">RED</strong> = insufficient funds
+    </div>
+    <div class="divider"></div>
+    <div class="short-circuit">&#x26A0; Short-circuits pipeline on RED</div>
+  </div>
+
+  <!-- ── 5. Reconcile Agent ────────────────────── -->
+  <div class="card">
+    <div class="pipeline-pos">5th in pipeline</div>
+    <div class="card-header">
+      <div class="card-icon">&#x1F50D;</div>
+      <h2>Reconcile Agent</h2>
+    </div>
+    <div class="card-role">Post-execution bookkeeping &mdash; matches ledger and detects duplicates</div>
+
+    <div class="section-label">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg>
+      What It Checks
+    </div>
+    <div class="logic-block">
+      <ul>
+        <li>Verifies debit and credit ledger entries balance</li>
+        <li>Searches for duplicate payments: same client + same amount in last 24 hours</li>
+        <li>No duplicates and ledger balanced <span class="then green">PASS</span></li>
+        <li>1 possible duplicate found <span class="then amber">FLAG</span> &mdash; needs human review</li>
+        <li>2+ duplicates detected <span class="then red">REJECT</span> &mdash; likely double-payment</li>
+      </ul>
+    </div>
+
+    <div class="section-label">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      Systems
+    </div>
+    <div class="systems">
+      <span class="sys-badge db">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4.03 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/></svg>
+        D1 ledger_entries
+      </span>
+      <span class="sys-badge db">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4.03 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/></svg>
+        D1 payment_requests
+      </span>
+    </div>
+
+    <div class="section-label">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
+      Verdicts
+    </div>
+    <div class="verdicts">
+      <span class="verdict green">&#x25CF; GREEN</span>
+      <span class="verdict amber">&#x25CF; AMBER</span>
+      <span class="verdict red">&#x25CF; RED</span>
+    </div>
+    <div class="verdict-desc">
+      <strong style="color:#4ade80">GREEN</strong> = balanced, no duplicates &nbsp;|&nbsp;
+      <strong style="color:#fbbf24">AMBER</strong> = possible duplicate &nbsp;|&nbsp;
+      <strong style="color:#f87171">RED</strong> = confirmed duplicates
+    </div>
+    <div class="divider"></div>
+    <div class="short-circuit no">&#x2714; Does not short-circuit pipeline (last agent)</div>
   </div>
 
   <!-- ── Orchestrator ────────────────────────── -->
@@ -563,20 +564,20 @@ const AGENTS_HTML = `<!DOCTYPE html>
       <div class="card-icon" style="background:rgba(129,140,248,0.15);">&#x1F3AF;</div>
       <h2>Orchestrator</h2>
     </div>
-    <div class="card-role">Verdict aggregation and final decision engine</div>
+    <div class="card-role">Verdict aggregation and final decision</div>
 
     <div class="section-label">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg>
       What It Checks
     </div>
     <div class="logic-block">
-      <p style="margin-bottom:8px">Collects all five agent verdicts and makes one final call:</p>
       <ul>
-        <li>Any agent returned <span class="then red">RED</span> &rarr; the payment is <span class="highlight">auto-rejected</span>. The pipeline already stopped at that agent.</li>
-        <li>Any agent returned <span class="then amber">AMBER</span> &rarr; the payment is <span class="highlight">escalated</span> to the dashboard for a human to review.</li>
-        <li>All agents returned <span class="then green">GREEN</span> &rarr; the payment is <span class="highlight">auto-approved</span>. No human needed.</li>
+        <li>Collects all five agent verdicts and makes one final call</li>
+        <li>Any agent returned <span class="then red">RED</span> &rarr; payment is <span class="highlight">auto-rejected</span> (pipeline already stopped at that agent)</li>
+        <li>Any agent returned <span class="then amber">AMBER</span> &rarr; payment is <span class="highlight">escalated</span> to dashboard for human review</li>
+        <li>All agents returned <span class="then green">GREEN</span> &rarr; payment is <span class="highlight">auto-approved</span>, no human needed</li>
+        <li>Every verdict and final decision written to D1 for audit trail</li>
       </ul>
-      <p style="margin-top:10px">Every verdict and the final decision are written to D1 for a complete audit trail.</p>
     </div>
 
     <div class="section-label">
@@ -586,15 +587,11 @@ const AGENTS_HTML = `<!DOCTYPE html>
     <div class="systems">
       <span class="sys-badge db">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4.03 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/></svg>
-        D1 payment_requests
+        D1 payment_requests (status update)
       </span>
       <span class="sys-badge db">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4.03 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/></svg>
-        D1 agent_decisions
-      </span>
-      <span class="sys-badge queue">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-        Queue (async notifications)
+        D1 agent_decisions (write all verdicts)
       </span>
     </div>
 

@@ -86,7 +86,7 @@ mcpManifest.get('/mcp/manifest', (c) => {
             requestId: { type: 'string', description: 'UUID of the payment request' },
             agentType: {
               type: 'string',
-              enum: ['intake', 'compliance', 'fx', 'risk', 'recon'],
+              enum: ['validate', 'quote', 'screen', 'execute', 'reconcile'],
               description: 'The pipeline agent whose reasoning you want to inspect',
             },
           },

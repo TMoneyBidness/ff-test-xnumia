@@ -61,7 +61,7 @@ CREATE INDEX IF NOT EXISTS idx_ledger_unreconciled ON ledger_entries(reconciled)
 CREATE TABLE IF NOT EXISTS agent_decisions (
   id TEXT PRIMARY KEY,
   request_id TEXT NOT NULL, -- payment_request or transaction id
-  agent_type TEXT NOT NULL CHECK (agent_type IN ('intake', 'compliance', 'fx', 'risk', 'recon', 'settlement', 'reconciliation', 'fraud', 'aml', 'ops', 'orchestrator')),
+  agent_type TEXT NOT NULL CHECK (agent_type IN ('validate', 'quote', 'screen', 'execute', 'reconcile', 'intake', 'compliance', 'fx', 'risk', 'recon', 'settlement', 'reconciliation', 'fraud', 'aml', 'ops', 'orchestrator')),
   verdict TEXT NOT NULL CHECK (verdict IN ('green', 'amber', 'red')),
   action TEXT NOT NULL,
   reasoning TEXT NOT NULL,

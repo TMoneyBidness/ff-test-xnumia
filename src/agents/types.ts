@@ -1,8 +1,8 @@
-/** Shared types for the payment request pipeline agents */
+/** Shared types for the payment pipeline agents */
 
 export type Verdict = 'green' | 'amber' | 'red'
 
-export type AgentType = 'intake' | 'compliance' | 'fx' | 'risk' | 'recon'
+export type AgentType = 'validate' | 'quote' | 'screen' | 'execute' | 'reconcile'
 
 export interface PaymentRequest {
   id: string
