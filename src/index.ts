@@ -12,6 +12,7 @@ import { apiExplorer } from './router/api-explorer'
 import { landing } from './router/landing'
 import { readiness } from './router/readiness'
 import { handleQueue } from './queue/consumer'
+import { runOpsAgents } from './agents/ops-runner'
 
 // Re-export Durable Object and Workflow classes for Cloudflare runtime
 export { OrchestratorDO } from './durable-objects/orchestrator'
@@ -31,6 +32,12 @@ app.route('/', flowchart)
 app.route('/', agentsDetail)
 app.route('/', apiExplorer)
 app.route('/', readiness)
+
+// Trigger all 5 operations agents manually
+app.post('/ops/run', async (c) => {
+  const results = await runOpsAgents(c.env)
+  return c.json({ results, ranAt: new Date().toISOString() })
+})
 
 // Worker export — fetch handler + queue consumer
 export default {
