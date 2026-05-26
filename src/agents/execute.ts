@@ -45,6 +45,7 @@ export class ExecuteAgent implements PipelineAgent {
         amount: request.amountCents / 100,
         currency: request.currencyFrom,
         reference: request.id,
+        idempotencyKey: `exec-transfer-${request.id}`,
       })
 
       // Step 3: Convert via exchange (fiat → stablecoin)

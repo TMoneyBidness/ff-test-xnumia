@@ -21,4 +21,7 @@ export interface Env {
 
   // ── Vars ──────────────────────────────────────
   ENVIRONMENT: 'production' | 'sandbox'
+
+  // ── Secrets (optional per provider) ──────
+  STRIPE_WEBHOOK_SECRET?: string
 }

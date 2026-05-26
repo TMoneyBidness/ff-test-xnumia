@@ -4,7 +4,7 @@ export class MockBankAdapter implements BankPort {
   private balances = new Map<string, { balance: number; currency: string }>()
   private transfers = new Map<
     string,
-    { status: 'pending' | 'completed' | 'failed'; settledAt?: string }
+    { status: 'pending' | 'completed' | 'failed' | 'returned'; settledAt?: string; failureReason?: string }
   >()
 
   constructor() {
@@ -28,6 +28,7 @@ export class MockBankAdapter implements BankPort {
     amount: number
     currency: string
     reference: string
+    idempotencyKey: string
   }): Promise<{ transferId: string; status: string }> {
     console.log(`[MockBankAdapter] initiateTransfer`, params)
     const transferId = `mock-bank-transfer-${Date.now()}`
@@ -57,8 +58,9 @@ export class MockBankAdapter implements BankPort {
   }
 
   async getTransferStatus(transferId: string): Promise<{
-    status: 'pending' | 'completed' | 'failed'
+    status: 'pending' | 'completed' | 'failed' | 'returned'
     settledAt?: string
+    failureReason?: string
   }> {
     console.log(`[MockBankAdapter] getTransferStatus`, { transferId })
     const entry = this.transfers.get(transferId)

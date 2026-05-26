@@ -20,18 +20,20 @@ export class MockExchangeAdapter implements ExchangePort {
     fromCurrency: string
     toCurrency: string
     amount: number
-  }): Promise<{ rate: number; expiresAt: string }> {
+  }): Promise<{ rate: number; expiresAt: string; quoteId: string }> {
     console.log(`[MockExchangeAdapter] getQuote`, params)
     const key = `${params.fromCurrency}-${params.toCurrency}`
     const rate = this.rates[key] ?? 1.0
     const expiresAt = new Date(Date.now() + 30_000).toISOString()
-    return { rate, expiresAt }
+    const quoteId = `mock-quote-${Date.now()}`
+    return { rate, expiresAt, quoteId }
   }
 
   async convertFiatToStable(params: {
     amount: number
     fiatCurrency: string
     stablecoin: string
+    idempotencyKey?: string
   }): Promise<{ conversionId: string; amountReceived: number }> {
     console.log(`[MockExchangeAdapter] convertFiatToStable`, params)
     const conversionId = `mock-exchange-conversion-${Date.now()}`
@@ -52,6 +54,7 @@ export class MockExchangeAdapter implements ExchangePort {
     amount: number
     stablecoin: string
     fiatCurrency: string
+    idempotencyKey?: string
   }): Promise<{ conversionId: string; amountReceived: number }> {
     console.log(`[MockExchangeAdapter] convertStableToFiat`, params)
     const conversionId = `mock-exchange-conversion-${Date.now()}`
@@ -70,6 +73,8 @@ export class MockExchangeAdapter implements ExchangePort {
 
   async getConversionStatus(conversionId: string): Promise<{
     status: 'pending' | 'completed' | 'failed'
+    settledAt?: string
+    failureReason?: string
   }> {
     console.log(`[MockExchangeAdapter] getConversionStatus`, { conversionId })
     const entry = this.conversions.get(conversionId)

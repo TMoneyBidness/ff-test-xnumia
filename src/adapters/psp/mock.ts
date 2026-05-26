@@ -9,6 +9,7 @@ export class MockPSPAdapter implements PSPPort {
     source: string
     destination: string
     reference: string
+    idempotencyKey: string
   }): Promise<{ paymentId: string; status: string }> {
     console.log(`[MockPSPAdapter] submitPayment`, params)
     const paymentId = `mock-psp-payment-${Date.now()}`
@@ -24,6 +25,7 @@ export class MockPSPAdapter implements PSPPort {
 
   async getPaymentStatus(paymentId: string): Promise<{
     status: 'pending' | 'completed' | 'failed'
+    failureReason?: string
   }> {
     console.log(`[MockPSPAdapter] getPaymentStatus`, { paymentId })
     const entry = this.payments.get(paymentId)

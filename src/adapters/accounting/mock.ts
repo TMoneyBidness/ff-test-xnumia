@@ -19,6 +19,7 @@ export class MockAccountingAdapter implements AccountingPort {
     amount: number
     currency: string
     description: string
+    idempotencyKey?: string
   }): Promise<{ invoiceId: string }> {
     console.log(`[MockAccountingAdapter] createInvoice`, params)
     const invoiceId = `mock-invoice-${Date.now()}`

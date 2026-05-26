@@ -10,6 +10,7 @@ import { flowchart } from './router/flowchart'
 import { agentsDetail } from './router/agents-detail'
 import { apiExplorer } from './router/api-explorer'
 import { landing } from './router/landing'
+import { readiness } from './router/readiness'
 import { handleQueue } from './queue/consumer'
 
 // Re-export Durable Object and Workflow classes for Cloudflare runtime
@@ -29,6 +30,7 @@ app.route('/', mcpManifest)
 app.route('/', flowchart)
 app.route('/', agentsDetail)
 app.route('/', apiExplorer)
+app.route('/', readiness)
 
 // Worker export — fetch handler + queue consumer
 export default {
